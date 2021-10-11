@@ -36,43 +36,8 @@ def c():
     foo((t.oldprop1 + t.oldprop3))
 
 
-import inspect
+from ast_utils import getInvokingAstNode
 import ast
-import dis
-
-
-def getInvokingAstNode():
-
-    c = func
-    frame = inspect.currentframe()
-    frame = frame.f_back.f_back
-    code = inspect.getsource(frame)
-
-    code_ast = ast.parse(code)
-    nodes = {}
-
-    for i, node in enumerate(ast.walk(code_ast)):
-        node.lineno = i
-        node.col_offset = 0
-        node.end_lineno = i
-        node.end_offset = 1
-        nodes[i] = node
-
-    compiled = compile(code_ast, "foo", mode="exec")
-
-    module_bytecode = dis.Bytecode(compiled)
-    func_bytecode = dis.Bytecode(next(iter(module_bytecode)).argval)
-
-    for i in func_bytecode:
-        if i.offset == frame.f_lasti:
-            last_instr = i
-            break
-    else:
-        assert False
-
-    ast_node = nodes[last_instr.starts_line]
-
-    return ast_node
 
 
 def old():
