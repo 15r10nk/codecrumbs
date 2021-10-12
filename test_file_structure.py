@@ -5,7 +5,9 @@ import sys
 import pathlib
 
 
-def check_source(code):
+def check_source(code, fix=False):
+    if fix:
+        code = fix_code(code)
     try:
         list(iter_bc_mapping(code)[1])
     except AstStructureError as e:
@@ -17,6 +19,7 @@ def check_source(code):
 
 def test_lambdas():
     assert not check_source("foo(lambda:a,lambda:a)")
+    assert check_source("foo(lambda:a,lambda:a)", fix=True)
     assert check_source("foo(lambda:a,lambda:b)")
 
 
@@ -40,7 +43,7 @@ def dump_code(code, file):
 def diff_bytecodes(filename):
 
     if not filename.resolve().parent == pathlib.Path("examples").resolve():
-        example_filename = pathlib.Path("examples") / filename.name
+        example_filename = pathlib.Path("examples") / ("_"+filename.name)
         shutil.copy(filename, example_filename)
         filename = example_filename
     code = open(filename).read()
@@ -55,31 +58,37 @@ def diff_bytecodes(filename):
 
 
 import shutil
+from test_fix_code import fix_code
 
 if __name__ == "__main__":
     dirname = sys.argv[1]
-    done=set()
+    done = set()
 
     for filename in pathlib.Path(dirname).rglob("*.py"):
 
         import ast
         try:
             code = open(filename).read()
-            ast=ast.parse(code)
-            compile(ast,"foo","exec")
+            ast = ast.parse(code)
+            compile(ast, "foo", "exec")
         except KeyboardInterrupt:
             raise
         except:
             continue
 
         if hash(code) in done:
-            print("skip",filename)
+            print("skip", filename)
             continue
-        
+
         done.add(hash(code))
 
+        if False:
+            code = fix_code(code)
+            with open(str(filename) + "_fixed", "w") as f:
+                f.write(code)
+
         try:
-            if not check_source(open(filename).read()):
+            if not check_source(code):
                 diff_bytecodes(filename)
                 print("check", filename, "failed")
 
