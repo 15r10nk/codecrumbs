@@ -1,8 +1,8 @@
 from calling_expression import (
-    iter_matched_bytecodes,
+    _iter_matched_bytecodes,
     AstStructureError,
-    iter_bc_mapping,
-    bytecodes_mapping,
+    _iter_bc_mapping,
+    _bytecodes_mapping,
 )
 
 import dis
@@ -15,7 +15,7 @@ def check_source(code, fix=False):
     if fix:
         code = fix_code(code)
     try:
-        return all( a is not None for a,b in iter_bc_mapping(code)[1])
+        return all( a is not None for a,b in _iter_bc_mapping(code)[1])
     except AstStructureError as e:
         print(e)
         return False
@@ -54,7 +54,7 @@ def diff_bytecodes(filename):
         filename = example_filename
     code = open(filename).read()
     try:
-        nodes, bc_a, bc_b = bytecodes_mapping(code)
+        nodes, bc_a, bc_b = _bytecodes_mapping(code)
         dump_code(bc_a, file=open(f"{filename}_a", "w"))
         dump_code(bc_b, file=open(f"{filename}_b", "w"))
     except KeyboardInterrupt:
