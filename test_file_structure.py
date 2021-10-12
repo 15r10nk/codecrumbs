@@ -1,4 +1,10 @@
-from ast_utils import iter_matched_bytecodes, AstStructureError, iter_bc_mapping, bytecodes_mapping
+from calling_expression import (
+    iter_matched_bytecodes,
+    AstStructureError,
+    iter_bc_mapping,
+    bytecodes_mapping,
+)
+
 import dis
 
 import sys
@@ -9,7 +15,7 @@ def check_source(code, fix=False):
     if fix:
         code = fix_code(code)
     try:
-        list(iter_bc_mapping(code)[1])
+        return all( a is not None for a,b in iter_bc_mapping(code)[1])
     except AstStructureError as e:
         print(e)
         return False
@@ -43,7 +49,7 @@ def dump_code(code, file):
 def diff_bytecodes(filename):
 
     if not filename.resolve().parent == pathlib.Path("examples").resolve():
-        example_filename = pathlib.Path("examples") / ("_"+filename.name)
+        example_filename = pathlib.Path("examples") / ("_" + filename.name)
         shutil.copy(filename, example_filename)
         filename = example_filename
     code = open(filename).read()
@@ -67,6 +73,7 @@ if __name__ == "__main__":
     for filename in pathlib.Path(dirname).rglob("*.py"):
 
         import ast
+
         try:
             code = open(filename).read()
             ast = ast.parse(code)

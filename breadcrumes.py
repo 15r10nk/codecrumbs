@@ -57,7 +57,7 @@ def parameter_renamed(since_version=None, **old_params):
     return w
 
 
-def deprectated(since_version=None):
+def inline_source(since_version=None):
     def w(f):
         def r(*a, **ka):
             warnings.warn(

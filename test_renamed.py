@@ -1,7 +1,7 @@
 from breadcrumes import renamed
 
 
-class Test:
+class Example:
     oldprop = renamed("newprop")
     oldprop1 = renamed("newprop")
     oldprop2 = renamed("newprop")
@@ -10,7 +10,7 @@ class Test:
         self.newprop = 5
 
 
-t = Test()
+t = Example()
 
 
 def foo(*a):
@@ -36,12 +36,13 @@ def c():
     foo((t.oldprop1 + t.oldprop3))
 
 
-from ast_utils import getInvokingAstNode
+from calling_expression import calling_expression
 import ast
 
 
+
 def old():
-    node = getInvokingAstNode()
+    node = calling_expression().expr
     print("node:", ast.dump(node, include_attributes=True))
     return 5
 
