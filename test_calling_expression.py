@@ -4,7 +4,7 @@ import ast
 import pytest
 
 
-def test_lambda_problem1():
+def test_lambda_problem():
     [lambda: 1, lambda: 1]
 
     def foo():
@@ -15,7 +15,7 @@ def test_lambda_problem1():
         foo()
 
 
-def test_lambda_problem2():
+def test_lambda_in_parent_function():
     [lambda: 1, lambda: 1]
 
     def w():
@@ -25,8 +25,7 @@ def test_lambda_problem2():
 
         foo()
 
-    with pytest.raises(AstStructureError):
-        w()
+    w()
 
 
 def test_function():

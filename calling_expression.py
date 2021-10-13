@@ -113,11 +113,48 @@ def _bytecodes_mapping(code, rewrite_hook):
     )
 
 
+from collections import defaultdict
+
+
+def sort_out(func, it):
+    t = []
+    f = []
+    for e in it:
+        if func(e):
+            t.append(e)
+        else:
+            f.append(e)
+    return t, f
+
+
+def _match_consts(consts_a, consts_b):
+    codes_a = [c for c in consts_a if isinstance(c, CodeType)]
+    codes_b = [c for c in consts_b if isinstance(c, CodeType)]
+    assert len(codes_a) >= len(codes_b)
+
+    mapping = defaultdict(list)
+    for code_b in codes_b:
+        matching, codes_a = sort_out(lambda a: _bc_match(a, code_b), codes_a)
+        assert matching
+        mapping[code_b] = matching
+
+    assert not codes_a
+    if codes_a:
+        return
+
+    for code_b, codes_a in mapping.items():
+        if len(codes_a) == 1:
+            yield codes_a[0], code_b
+        else:
+            yield None, code_b
+
+
 def _iter_matched_bytecodes(code_a: CodeType, code_b: CodeType):
     if _bc_match(code_a, code_b):
         yield code_a, code_b
     else:
         yield None, code_b
+        yield from _match_consts(code_a.co_consts, code_b.co_consts)
         return
 
     # yield every code arg
