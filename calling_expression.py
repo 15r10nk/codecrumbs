@@ -25,7 +25,7 @@ except:
     pass
 else:
 
-    def pytest_rewrite(ast,source):
+    def pytest_rewrite(ast, source):
         rewrite_asserts(ast, source)
 
     _rewrite_hooks["pytest_assert"] = pytest_rewrite
