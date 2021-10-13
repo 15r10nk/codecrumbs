@@ -37,6 +37,21 @@ def test_function():
     foo()
 
 
+def test_pytest_assert_rewriting():
+    def linenumber():
+        return calling_expression().expr.lineno
+
+    lineno = linenumber()
+
+    def foo():
+        expr = calling_expression().expr
+        assert expr.func.id == "foo"
+        assert expr.lineno == lineno + 8
+        return 1
+
+    assert foo() in [5, 8, 1, 7] and "lge" in "lfcgflgeaegleg"
+
+
 def test_add():
     class foo:
         def __add__(self, other):

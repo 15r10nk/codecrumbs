@@ -15,6 +15,22 @@ class AstStructureError(Exception):
     line: int
 
 
+_rewrite_hooks = {"": (lambda ast, source: None)}
+
+# the main reason for this rewrite hooks is pytest,
+# because we want to support the rewritten asserts in tests
+try:
+    from _pytest.assertion.rewrite import rewrite_asserts
+except:
+    pass
+else:
+
+    def pytest_rewrite(ast,source):
+        rewrite_asserts(ast, source)
+
+    _rewrite_hooks["pytest_assert"] = pytest_rewrite
+
+
 @dataclass
 class lookup_result:
     expr: ast.AST
@@ -41,8 +57,8 @@ def bc_key(code):
 
 
 @functools.lru_cache(maxsize=None)
-def nodes_map(source_file):
-    nodes, it = _iter_bc_mapping(open(source_file).read())
+def nodes_map(source_file, rewrite_hook):
+    nodes, it = _iter_bc_mapping(open(source_file).read(), rewrite_hook)
     it = list(it)
 
     bc_map = {bc_key(bc_b): code_to_node_index(bc_a) for bc_a, bc_b in it}
@@ -53,9 +69,15 @@ def calling_expression():
     frame = inspect.currentframe().f_back.f_back
 
     source_file = inspect.getsourcefile(frame)
-    nodes, bc_map = nodes_map(source_file)
 
-    node_index = bc_map.get(bc_key(frame.f_code), None)
+    node_index = None
+
+    for rewrite_hook in _rewrite_hooks:
+        nodes, bc_map = nodes_map(source_file, rewrite_hook)
+
+        node_index = bc_map.get(bc_key(frame.f_code), None)
+        if node_index is not None:
+            break
 
     if node_index is None:
         raise AstStructureError(frame.f_code.co_firstlineno)
@@ -65,20 +87,19 @@ def calling_expression():
     return lookup_result(ast_node, source_file, nodes)
 
 
-def _iter_bc_mapping(code):
-    nodes, bc_a, bc_b = _bytecodes_mapping(code)
-
+def _iter_bc_mapping(code, rewrite_hook=""):
+    nodes, bc_a, bc_b = _bytecodes_mapping(code, rewrite_hook)
     return nodes, _iter_matched_bytecodes(bc_a, bc_b)
 
 
-def _bytecodes_mapping(code):
+def _bytecodes_mapping(code, rewrite_hook):
     code_ast = ast.parse(code)
+    _rewrite_hooks[rewrite_hook](code_ast, code)
     nodeindex_ast = copy.deepcopy(code_ast)
     nodes = {}
 
     for i, (code_node, index_node) in enumerate(
-        zip(ast.walk(code_ast), ast.walk(nodeindex_ast))
-    ):
+            zip(ast.walk(code_ast), ast.walk(nodeindex_ast))):
         index_node.lineno = i
         index_node.col_offset = 0
         index_node.end_lineno = i
