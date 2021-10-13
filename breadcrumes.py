@@ -8,49 +8,47 @@ class renamed:
     def __set_name__(self, owner, name):
         self.current_name = name
 
-    def __get__(self, obj, objtype=None):
-        print(obj, objtype)
+    def warn(self):
         warnings.warn(
-            f'usage of "{self.current_name}" is deprecated and should be replaced with "{self.new_name}" (can be fixed with breadcrumes)',
+            f'".{self.current_name}" should be replaced with ".{self.new_name}" (fixable with breadcrumes)',
             DeprecationWarning,
-            stacklevel=2,
+            stacklevel=3,
         )
+
+    def __get__(self, obj, objtype=None):
+        self.warn()
         if obj is None:
             obj = objtype
         return getattr(obj, self.new_name)
 
     def __set__(self, obj, value):
-        warnings.warn(
-            f'usage of "{self.current_name}" is deprecated and should be replaced with "{self.new_name}" (can be fixed with breadcrumes)',
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        print("set", obj, value)
+        self.warn()
         return setattr(obj, self.new_name, value)
 
 
 def parameter_renamed(since_version=None, **old_params):
     def w(f):
         def r(*a, **ka):
+            new_ka = {}
             for key in ka:
                 if key in old_params:
                     old_arg = key
                     new_arg = old_params[key]
                     warnings.warn(
-                        f'usage of named argument "{old_arg}" is deprecated and should be replaced with "{new_arg}" (can be fixed with breadcrumes)',
+                        f'argument name "{old_arg}=" should be replaced with "{new_arg}=" (fixable with breadcrumes)',
                         DeprecationWarning,
                         stacklevel=2,
                     )
 
                     assert (
-                        new_param not in ka
-                    ), f"you can not specify new and deprecated arguments the same time"
+                        new_arg not in ka
+                    ), f"you can not specify {old_arg} and {new_arg} the same time"
 
-                    value = ka[old_param]
-                    del ka[old_param]
-                    ka[new_param] = value
+                    new_ka[new_arg] = ka[old_arg]
+                else:
+                    new_ka[key] = ka[key]
 
-            f(*a, **ka)
+            f(*a, **new_ka)
 
         return r
 
