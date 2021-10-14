@@ -9,10 +9,11 @@ from itertools import zip_longest
 import copy
 import functools
 
+from collections import defaultdict
 
-@dataclass
+
 class AstStructureError(Exception):
-    line: int
+    pass
 
 
 _rewrite_hooks = {"": (lambda ast, source: None)}
@@ -33,12 +34,28 @@ else:
 
 @dataclass
 class lookup_result:
-    expr: ast.AST
     filename: str
-    ast: ast.AST
+    _orig_ast: ast.AST
+    ast_index: int
+
+    @functools.cached_property
+    def ast(self):
+        return copy.deepcopy(self._orig_ast)
+
+    @functools.cached_property
+    def expr(self):
+        for node in ast.walk(self._orig_ast):
+            if node.ast_index == self.ast_index:
+                return copy.deepcopy(node)
+
+    def dump(self):
+        print(ast.dump(self.expr))
 
 
 def code_to_node_index(code):
+    """
+    returns a dictonary which maps instruction offset to ast index
+    """
     if code is None:
         return None
 
@@ -59,7 +76,9 @@ def bc_key(code):
 @functools.lru_cache(maxsize=None)
 def nodes_map(source_file, rewrite_hook):
     nodes, it = _iter_bc_mapping(open(source_file).read(), rewrite_hook)
-    it = list(it)
+    for node in ast.walk(nodes):
+        node.filename=source_file
+
 
     bc_map = {bc_key(bc_b): code_to_node_index(bc_a) for bc_a, bc_b in it}
     return nodes, bc_map
@@ -70,8 +89,6 @@ def calling_expression():
 
     source_file = inspect.getsourcefile(frame)
 
-    node_index = None
-
     for rewrite_hook in _rewrite_hooks:
         nodes, bc_map = nodes_map(source_file, rewrite_hook)
 
@@ -80,11 +97,13 @@ def calling_expression():
             break
 
     if node_index is None:
-        raise AstStructureError(frame.f_code.co_firstlineno)
+        raise AstStructureError()
 
-    ast_node = nodes[node_index[frame.f_lasti]]
+    ast_index = node_index[frame.f_lasti]
 
-    return lookup_result(ast_node, source_file, nodes)
+    return lookup_result(filename=source_file,
+                         _orig_ast=nodes,
+                         ast_index=ast_index)
 
 
 def _iter_bc_mapping(code, rewrite_hook=""):
@@ -96,24 +115,23 @@ def _bytecodes_mapping(code, rewrite_hook):
     code_ast = ast.parse(code)
     _rewrite_hooks[rewrite_hook](code_ast, code)
     nodeindex_ast = copy.deepcopy(code_ast)
-    nodes = {}
+    nodes = []
 
-    for i, (code_node, index_node) in enumerate(
-            zip(ast.walk(code_ast), ast.walk(nodeindex_ast))):
+    for i, index_node in enumerate(ast.walk(nodeindex_ast)):
         index_node.lineno = i
         index_node.col_offset = 0
         index_node.end_lineno = i
         index_node.end_offset = 1
-        nodes[i] = code_node
+
+    for i, code_node in enumerate(ast.walk(code_ast)):
+        code_node.ast_index = i
+        nodes.append(code_node)
 
     return (
-        nodes,
+        code_ast,
         compile(nodeindex_ast, "foo", mode="exec"),
         compile(code_ast, "foo", mode="exec"),
     )
-
-
-from collections import defaultdict
 
 
 def sort_out(func, it):

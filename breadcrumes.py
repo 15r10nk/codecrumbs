@@ -34,15 +34,16 @@ def parameter_renamed(since_version=None, **old_params):
                 if key in old_params:
                     old_arg = key
                     new_arg = old_params[key]
+
+                    assert (
+                        new_arg not in ka
+                    ), f"you can not specify {old_arg} and {new_arg} the same time"
+
                     warnings.warn(
                         f'argument name "{old_arg}=" should be replaced with "{new_arg}=" (fixable with breadcrumes)',
                         DeprecationWarning,
                         stacklevel=2,
                     )
-
-                    assert (
-                        new_arg not in ka
-                    ), f"you can not specify {old_arg} and {new_arg} the same time"
 
                     new_ka[new_arg] = ka[old_arg]
                 else:
