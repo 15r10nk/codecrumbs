@@ -1,15 +1,12 @@
-import inspect
 import ast
-import dis
-
-from dataclasses import dataclass
-
-from types import CodeType
-from itertools import zip_longest
 import copy
+import dis
 import functools
-
+import inspect
 from collections import defaultdict
+from dataclasses import dataclass
+from itertools import zip_longest
+from types import CodeType
 
 
 class AstStructureError(Exception):
@@ -77,10 +74,9 @@ def bc_key(code):
 def nodes_map(source_file, rewrite_hook):
     with open(source_file) as code:
         nodes, it = _iter_bc_mapping(code.read(), rewrite_hook)
-        
-    for node in ast.walk(nodes):
-        node.filename=source_file
 
+    for node in ast.walk(nodes):
+        node.filename = source_file
 
     bc_map = {bc_key(bc_b): code_to_node_index(bc_a) for bc_a, bc_b in it}
     return nodes, bc_map
@@ -90,7 +86,7 @@ def calling_expression():
     frame = inspect.currentframe().f_back.f_back
 
     source_file = inspect.getsourcefile(frame)
-    print(source_file,inspect.getfile(frame))
+    print(source_file, inspect.getfile(frame))
 
     for rewrite_hook in _rewrite_hooks:
         nodes, bc_map = nodes_map(source_file, rewrite_hook)
@@ -104,9 +100,7 @@ def calling_expression():
 
     ast_index = node_index[frame.f_lasti]
 
-    return lookup_result(filename=source_file,
-                         _orig_ast=nodes,
-                         ast_index=ast_index)
+    return lookup_result(filename=source_file, _orig_ast=nodes, ast_index=ast_index)
 
 
 def _iter_bc_mapping(code, rewrite_hook=""):
@@ -189,9 +183,9 @@ def _iter_matched_bytecodes(code_a: CodeType, code_b: CodeType):
 def _bc_match(code_a: CodeType, code_b: CodeType):
     for a, b in zip_longest(dis.Bytecode(code_a), dis.Bytecode(code_b)):
         if a is None or b is None:
-            # branches with different length have usually different entries 
+            # branches with different length have usually different entries
             # this is also almost impossible
-            return False # pragma: no cover
+            return False  # pragma: no cover
 
         for attr in ("opcode", "arg"):
             if getattr(a, attr) != getattr(b, attr):

@@ -1,19 +1,20 @@
 import ast
-
 from collections import defaultdict
 
 
 def fix_code(code):
-    """
-    break lines before and after lambdas and comprehensions with 
+    r"""
+    break lines before and after lambdas and comprehensions with
     line-contuniation character \ and newline
     """
     a = ast.parse(code)
     breaks = defaultdict(set)
 
     for node in ast.walk(a):
-        if isinstance(node, (ast.GeneratorExp, ast.SetComp, ast.ListComp,
-                             ast.DictComp, ast.Lambda)):
+        if isinstance(
+            node,
+            (ast.GeneratorExp, ast.SetComp, ast.ListComp, ast.DictComp, ast.Lambda),
+        ):
             breaks[node.lineno - 1].add(node.col_offset)
             breaks[node.end_lineno - 1].add(node.end_col_offset)
 

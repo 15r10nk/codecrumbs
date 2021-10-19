@@ -1,8 +1,8 @@
+import ast
 import warnings
 
-from rewrite_code import replace
 from calling_expression import calling_expression
-import ast
+from rewrite_code import replace
 
 
 class start_of:
@@ -80,6 +80,7 @@ def parameter_renamed(since_version=None, **old_params):
     def w(f):
         def r(*a, **ka):
             new_ka = {}
+            changed = False
             for key in ka:
                 if key in old_params:
                     old_arg = key
@@ -96,8 +97,13 @@ def parameter_renamed(since_version=None, **old_params):
                     )
 
                     new_ka[new_arg] = ka[old_arg]
+                    changed = True
                 else:
                     new_ka[key] = ka[key]
+
+            if changed:
+                expr = calling_expression()
+                expr.dump()
 
             f(*a, **new_ka)
 

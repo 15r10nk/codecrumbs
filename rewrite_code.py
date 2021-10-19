@@ -1,8 +1,7 @@
 import ast
-
+import pathlib
 from collections import defaultdict
 from dataclasses import dataclass
-import pathlib
 
 try:
     from itertools import pairwise
@@ -50,12 +49,11 @@ class Change:
         if isinstance(new_contend, ast.AST):
             new_contend = ast.unparse(new_contend)
 
-
         get_source_file(filename).replacements.append(
-            Replacement(start=start,
-                        end=end,
-                        text=new_contend,
-                        change_id=self.change_id))
+            Replacement(
+                start=start, end=end, text=new_contend, change_id=self.change_id
+            )
+        )
 
 
 class SourceFile:
@@ -72,7 +70,7 @@ class SourceFile:
         for r in replacements:
             assert r.start < r.end
 
-        #TODO check for overlapping replacements
+        # TODO check for overlapping replacements
         for lhs, rhs in pairwise(replacements):
             assert lhs.end <= rhs.start
 
@@ -124,6 +122,7 @@ def insert_before(node, new_contend):
 
 
 _source_files = defaultdict(SourceFile)
+
 
 def code_stream(source):
     idx = 0

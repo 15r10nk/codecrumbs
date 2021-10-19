@@ -1,6 +1,9 @@
-from calling_expression import calling_expression
-from rewrite_code import rewrite, replace
+import inspect
+
 import pytest
+
+from calling_expression import calling_expression
+from rewrite_code import replace, rewrite
 
 
 def inc_number(n):
@@ -15,6 +18,7 @@ def rewrite_test(tmp_path):
     idx = 0
 
     def test(old_code, new_code):
+        frame = inspect.currentframe().f_back
         nonlocal idx
         filename = tmp_path / f"test_{idx}.py"
         idx += 1
@@ -24,12 +28,14 @@ def rewrite_test(tmp_path):
 
         code = compile(old_code, str(filename), "exec")
         d = dict(frame.f_globals)
-        l=dict(frame.f_locals)
+        l = dict(frame.f_locals)
         d["__file__"] = str(filename)
         with pytest.warns(None):
-            exec(code, d,l)
+            exec(code, d, l)
         rewrite(filename)
-        assert filename.read_bytes() == new_code.encode(),f"{filename.read_bytes()} != {new_code.encode()}"
+        assert (
+            filename.read_bytes() == new_code.encode()
+        ), f"{filename.read_bytes()} != {new_code.encode()}"
 
     yield test
 
@@ -38,8 +44,10 @@ def test_inc_number(rewrite_test):
     rewrite_test("inc_number(6)", "inc_number(7)")
     rewrite_test("inc_number(6)", "inc_number(7)")
     rewrite_test("inc_number(6)\r", "inc_number(7)\r")
-    rewrite_test("inc_number(6)\rinc_number(6)\n\rinc_number(6)",
-                 "inc_number(7)\rinc_number(7)\n\rinc_number(7)")
+    rewrite_test(
+        "inc_number(6)\rinc_number(6)\n\rinc_number(6)",
+        "inc_number(7)\rinc_number(7)\n\rinc_number(7)",
+    )
 
     rewrite_test("inc_number(6)#comment", "inc_number(7)#comment")
 

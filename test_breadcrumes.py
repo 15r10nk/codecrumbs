@@ -1,6 +1,9 @@
-from breadcrumes import renamed, parameter_renamed
-from calling_expression import calling_expression
+from contextlib import contextmanager
+
 import pytest
+
+from breadcrumes import parameter_renamed, renamed
+from calling_expression import calling_expression
 
 
 class snapshot:
@@ -12,10 +15,6 @@ class snapshot:
         if self.value != other:
             print("cmp", other)
         return False
-
-
-import logging
-from contextlib import contextmanager
 
 
 @contextmanager
@@ -30,7 +29,7 @@ def deprecation(msg):
 @contextmanager
 def warn_replace(old, new):
     with deprecation(
-            f'".{old}" should be replaced with ".{new}" (fixable with breadcrumes)'
+        f'".{old}" should be replaced with ".{new}" (fixable with breadcrumes)'
     ):
         yield
 
@@ -103,13 +102,12 @@ def test_parameter_renamed_method():
 
     e.method(new=5)
     with deprecation(
-            'argument name "old=" should be replaced with "new=" (fixable with breadcrumes)'
+        'argument name "old=" should be replaced with "new=" (fixable with breadcrumes)'
     ):
         e.method(old=5)
 
     with pytest.raises(AssertionError):
         e.method(old=5, new=5)
-from test_rewrite_code import rewrite_test
 
 
 def test_rename_replacements(rewrite_test):
@@ -119,12 +117,13 @@ def test_rename_replacements(rewrite_test):
         def new_method(self):
             print("new")
 
-    rewrite_test("m=Method()\nm.old_method()\n",
-                 "m=Method()\nm.new_method()\n")
+    rewrite_test("m=Method()\nm.old_method()\n", "m=Method()\nm.new_method()\n")
 
     rewrite_test("m=Method()\nm.old_method\n", "m=Method()\nm.new_method\n")
     rewrite_test("m=Method()\nm.  old_method\n", "m=Method()\nm.new_method\n")
     rewrite_test("m=Method()\nm  .old_method\n", "m=Method()\nm.new_method\n")
 
-    rewrite_test("m=Method()\nfor i in range(2):m.old_method\n",
-                 "m=Method()\nfor i in range(2):m.new_method\n")
+    rewrite_test(
+        "m=Method()\nfor i in range(2):m.old_method\n",
+        "m=Method()\nfor i in range(2):m.new_method\n",
+    )

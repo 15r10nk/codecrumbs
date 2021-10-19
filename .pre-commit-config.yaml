@@ -1,0 +1,55 @@
+---
+repos:
+    - hooks:
+          - id: check-yaml
+          - id: check-ast
+          - id: check-docstring-first
+          - id: check-merge-conflict
+          - id: trailing-whitespace
+      repo: https://github.com/pre-commit/pre-commit-hooks
+      rev: v4.0.1
+    - hooks:
+          - args:
+                - --in-place
+                - --expand-star-imports
+                - --remove-all-unused-imports
+                - --ignore-init-module-imports
+            id: autoflake
+      repo: https://github.com/myint/autoflake
+      rev: v1.4
+    - hooks:
+          - id: seed-isort-config
+      repo: https://github.com/asottile/seed-isort-config
+      rev: v2.2.0
+    - hooks:
+          - id: isort
+            args: [--profile, black, --float-to-top]
+
+      repo: https://github.com/timothycrosley/isort
+      rev: 5.9.3
+    - hooks:
+          - args:
+                - --py37-plus
+            id: pyupgrade
+      repo: https://github.com/asottile/pyupgrade
+      rev: v2.29.0
+    - hooks:
+          - id: black
+      repo: https://github.com/psf/black
+      rev: 21.9b0
+    - hooks:
+          - additional_dependencies:
+                - black==20.8b1
+            id: blacken-docs
+      repo: https://github.com/asottile/blacken-docs
+      rev: v1.11.0
+    - hooks:
+          - id: yamlfmt
+      repo: https://github.com/jumanjihouse/pre-commit-hook-yamlfmt
+      rev: 0.1.0
+    - hooks:
+          - id: commitizen
+            stages:
+                - commit-msg
+      repo: https://github.com/commitizen-tools/commitizen
+      rev: v2.20.0
