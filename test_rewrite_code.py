@@ -23,11 +23,13 @@ def rewrite_test(tmp_path):
         assert old_code.encode() == filename.read_bytes()
 
         code = compile(old_code, str(filename), "exec")
-        d = globals()
+        d = dict(frame.f_globals)
+        l=dict(frame.f_locals)
         d["__file__"] = str(filename)
-        exec(code, d)
+        with pytest.warns(None):
+            exec(code, d,l)
         rewrite(filename)
-        assert filename.read_bytes() == new_code.encode()
+        assert filename.read_bytes() == new_code.encode(),f"{filename.read_bytes()} != {new_code.encode()}"
 
     yield test
 

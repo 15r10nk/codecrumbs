@@ -1,9 +1,49 @@
 import warnings
 
+from rewrite_code import replace
+from calling_expression import calling_expression
+import ast
+
+
+class start_of:
+    def __init__(self, node):
+        self.filename = node.filename
+        self.lineno = node.lineno
+        self.col_offset = node.col_offset
+
+
+class end_of:
+    def __init__(self, node):
+        self.filename = node.filename
+        self.lineno = node.end_lineno
+        self.col_offset = node.end_col_offset
+
+
+class Range:
+    def __init__(self, start, end):
+        assert start.filename == end.filename
+        self.filename = start.filename
+        self.lineno = start.lineno
+        self.end_lineno = end.lineno
+        self.col_offset = start.col_offset
+        self.end_col_offset = end.col_offset
+
+
+class FixIndex:
+    def __init__(self):
+        self.index = set()
+
+    def is_first(self, expr):
+        fix_id = (expr.filename, expr.ast_index)
+        first = fix_id not in self.index
+        self.index.add(fix_id)
+        return first
+
 
 class renamed:
     def __init__(self, newname, since_version=None):
         self.new_name = newname
+        self.fixes = FixIndex()
 
     def __set_name__(self, owner, name):
         self.current_name = name
@@ -19,6 +59,16 @@ class renamed:
         self.warn()
         if obj is None:
             obj = objtype
+
+        expr = calling_expression()
+        if self.fixes.is_first(expr):
+            e = expr.expr
+
+            if isinstance(e, ast.Call):
+                e = e.func
+            assert isinstance(e, ast.Attribute)
+            replace(Range(end_of(e.value), end_of(e)), "." + self.new_name)
+
         return getattr(obj, self.new_name)
 
     def __set__(self, obj, value):

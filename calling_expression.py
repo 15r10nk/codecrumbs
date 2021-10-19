@@ -75,7 +75,9 @@ def bc_key(code):
 
 @functools.lru_cache(maxsize=None)
 def nodes_map(source_file, rewrite_hook):
-    nodes, it = _iter_bc_mapping(open(source_file).read(), rewrite_hook)
+    with open(source_file) as code:
+        nodes, it = _iter_bc_mapping(code.read(), rewrite_hook)
+        
     for node in ast.walk(nodes):
         node.filename=source_file
 
@@ -187,7 +189,9 @@ def _iter_matched_bytecodes(code_a: CodeType, code_b: CodeType):
 def _bc_match(code_a: CodeType, code_b: CodeType):
     for a, b in zip_longest(dis.Bytecode(code_a), dis.Bytecode(code_b)):
         if a is None or b is None:
-            return False
+            # branches with different length have usually different entries 
+            # this is also almost impossible
+            return False # pragma: no cover
 
         for attr in ("opcode", "arg"):
             if getattr(a, attr) != getattr(b, attr):

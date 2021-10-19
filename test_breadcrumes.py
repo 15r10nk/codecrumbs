@@ -23,7 +23,7 @@ def deprecation(msg):
 
     with pytest.warns(DeprecationWarning) as records:
         yield
-    assert len(records) == 1
+    assert len(records) == 1, [r.message for r in records]
     assert records[0].message.args[0] == msg
 
 
@@ -109,3 +109,22 @@ def test_parameter_renamed_method():
 
     with pytest.raises(AssertionError):
         e.method(old=5, new=5)
+from test_rewrite_code import rewrite_test
+
+
+def test_rename_replacements(rewrite_test):
+    class Method:
+        old_method = renamed("new_method")
+
+        def new_method(self):
+            print("new")
+
+    rewrite_test("m=Method()\nm.old_method()\n",
+                 "m=Method()\nm.new_method()\n")
+
+    rewrite_test("m=Method()\nm.old_method\n", "m=Method()\nm.new_method\n")
+    rewrite_test("m=Method()\nm.  old_method\n", "m=Method()\nm.new_method\n")
+    rewrite_test("m=Method()\nm  .old_method\n", "m=Method()\nm.new_method\n")
+
+    rewrite_test("m=Method()\nfor i in range(2):m.old_method\n",
+                 "m=Method()\nfor i in range(2):m.new_method\n")

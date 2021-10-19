@@ -50,6 +50,7 @@ class Change:
         if isinstance(new_contend, ast.AST):
             new_contend = ast.unparse(new_contend)
 
+
         get_source_file(filename).replacements.append(
             Replacement(start=start,
                         end=end,
@@ -124,7 +125,6 @@ def insert_before(node, new_contend):
 
 _source_files = defaultdict(SourceFile)
 
-
 def code_stream(source):
     idx = 0
     p_line = 1
@@ -153,4 +153,5 @@ def rewrite(filename=None):
         for file in _source_files.values:
             file.rewrite()
     else:
-        _source_files[filename].rewrite()
+        if filename in _source_files:
+            _source_files[filename].rewrite()
