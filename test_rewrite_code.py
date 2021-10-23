@@ -17,7 +17,10 @@ def inc_number(n):
 def rewrite_test(tmp_path):
     idx = 0
 
-    def test(old_code, new_code):
+    def test(old_code, new_code=None):
+        if new_code == None:
+            new_code = old_code
+
         frame = inspect.currentframe().f_back
         nonlocal idx
         filename = tmp_path / f"test_{idx}.py"
@@ -30,12 +33,20 @@ def rewrite_test(tmp_path):
         d = dict(frame.f_globals)
         l = dict(frame.f_locals)
         d["__file__"] = str(filename)
-        with pytest.warns(None):
-            exec(code, d, l)
-        rewrite(filename)
-        assert (
-            filename.read_bytes() == new_code.encode()
-        ), f"{filename.read_bytes()} != {new_code.encode()}"
+        try:
+            with pytest.warns(None):
+                exec(code, d, l)
+        except Exception as e:
+            rewrite(filename)
+            assert (
+                filename.read_bytes() == old_code.encode()
+            ), f"{filename.read_bytes()} != {new_code.encode()}"
+            raise
+        else:
+            rewrite(filename)
+            assert (
+                filename.read_bytes() == new_code.encode()
+            ), f"{filename.read_bytes()} != {new_code.encode()}"
 
     yield test
 

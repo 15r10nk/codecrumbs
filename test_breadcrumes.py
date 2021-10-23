@@ -4,6 +4,7 @@ import pytest
 
 from breadcrumes import parameter_renamed, renamed
 from calling_expression import calling_expression
+from test_rewrite_code import rewrite_test  # noqa
 
 
 class snapshot:
@@ -106,7 +107,9 @@ def test_parameter_renamed_method():
     ):
         e.method(old=5)
 
-    with pytest.raises(AssertionError):
+    with pytest.raises(
+        TypeError, match="old=... and new=... can not be used at the same time"
+    ):
         e.method(old=5, new=5)
 
 
@@ -127,3 +130,53 @@ def test_rename_replacements(rewrite_test):
         "m=Method()\nfor i in range(2):m.old_method\n",
         "m=Method()\nfor i in range(2):m.new_method\n",
     )
+
+
+def test_parameter_renames(rewrite_test):
+    class Method:
+        @parameter_renamed(old="new")
+        def method(self, other=2, new=1):
+            print("new")
+
+    rewrite_test("m=Method()\nm.method(old=5)\n", "m=Method()\nm.method(new=5)\n")
+
+    rewrite_test(
+        "m=Method()\nm.method(other=3,old=5)\n", "m=Method()\nm.method(other=3,new=5)\n"
+    )
+
+    rewrite_test(
+        "m=Method()\nm.method(old=5,other=3)\n", "m=Method()\nm.method(new=5,other=3)\n"
+    )
+
+    rewrite_test("m=Method()\nm.method(3,old=5)\n", "m=Method()\nm.method(3,new=5)\n")
+
+    rewrite_test("m=Method()\nm.method({'old':5})\n")
+
+    rewrite_test("m=Method()\nm.method({'old':5})\n")
+
+    rewrite_test("m=Method()\nm.method(other=5)\n")
+
+    rewrite_test("m=Method()\nm.method(1,2)\n")
+
+    with pytest.raises(TypeError):
+        rewrite_test("m=Method()\nm.method(old=5,new=3)\n")
+
+
+def test_parameter_renamed_misuse(rewrite_test):
+
+    with pytest.raises(
+        TypeError,
+        match="parmeter 'old' should be removed from signature if it is renamed to 'new'",
+    ):
+
+        @parameter_renamed(old="new")
+        def function(old=2, new=1):
+            print("new")
+
+    with pytest.raises(
+        TypeError, match="parmeter 'old' should be renamed to 'new' in the signature"
+    ):
+
+        @parameter_renamed(old="new")
+        def function(old=2):
+            print("new")

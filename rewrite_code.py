@@ -37,10 +37,15 @@ class Change:
         if not isinstance(new_contend, str):
             new_contend = repr(new_contend)
 
+        start = node.start if hasattr(node, "start") else (node.lineno, node.col_offset)
+        end = (
+            node.end if hasattr(node, "end") else (node.end_lineno, node.end_col_offset)
+        )
+
         self._replace(
             node.filename,
-            (node.lineno, node.col_offset),
-            (node.end_lineno, node.end_col_offset),
+            start,
+            end,
             new_contend,
         )
 

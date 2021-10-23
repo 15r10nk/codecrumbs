@@ -1,4 +1,5 @@
 import ast
+import inspect
 import warnings
 
 from calling_expression import calling_expression
@@ -78,6 +79,19 @@ class renamed:
 
 def parameter_renamed(since_version=None, **old_params):
     def w(f):
+        # check misuse
+        sig = inspect.signature(f)
+        for old_param, new_param in old_params.items():
+            if old_param in sig.parameters:
+                if new_param in sig.parameters:
+                    raise TypeError(
+                        "parmeter 'old' should be removed from signature if it is renamed to 'new'"
+                    )
+                else:
+                    raise TypeError(
+                        "parmeter 'old' should be renamed to 'new' in the signature"
+                    )
+
         def r(*a, **ka):
             new_ka = {}
             changed = False
@@ -86,9 +100,10 @@ def parameter_renamed(since_version=None, **old_params):
                     old_arg = key
                     new_arg = old_params[key]
 
-                    assert (
-                        new_arg not in ka
-                    ), f"you can not specify {old_arg} and {new_arg} the same time"
+                    if new_arg in ka:
+                        raise TypeError(
+                            f"{old_arg}=... and {new_arg}=... can not be used at the same time"
+                        )
 
                     warnings.warn(
                         f'argument name "{old_arg}=" should be replaced with "{new_arg}=" (fixable with breadcrumes)',
@@ -104,6 +119,41 @@ def parameter_renamed(since_version=None, **old_params):
             if changed:
                 expr = calling_expression()
                 expr.dump()
+                import itertools
+                import token
+                import tokenize
+
+                with open(expr.filename) as file:
+                    tokens = list(tokenize.generate_tokens(file.readline))
+
+                for arg in expr.expr.keywords:
+                    if arg.arg not in old_params:
+                        continue
+
+                    arg_value = arg.value
+                    start = arg_value.lineno, arg_value.col_offset
+
+                    mytokens = [
+                        t
+                        for t in tokens
+                        if t.start < start and t.type in (token.NAME, token.OP)
+                    ]
+
+                    name, op = mytokens[-2:]
+                    name.filename = expr.filename
+
+                    assert op.string == "="
+                    assert name.string == arg.arg
+
+                    with open(expr.filename) as file:
+                        tokens = list(
+                            itertools.takewhile(
+                                lambda t: t.start < start,
+                                tokenize.generate_tokens(file.readline),
+                            )
+                        )
+
+                    replace(name, old_params[arg.arg])
 
             f(*a, **new_ka)
 
