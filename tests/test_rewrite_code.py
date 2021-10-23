@@ -2,8 +2,8 @@ import inspect
 
 import pytest
 
-from calling_expression import calling_expression
-from rewrite_code import replace, rewrite
+from breadcrumes._calling_expression import calling_expression
+from breadcrumes._rewrite_code import replace, rewrite
 
 
 def inc_number(n):

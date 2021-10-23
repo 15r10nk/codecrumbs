@@ -29,17 +29,33 @@ else:
     _rewrite_hooks["pytest_assert"] = pytest_rewrite
 
 
+try:
+    from functools import cached_property
+except:
+    cached_property = property
+    if False:
+
+        class cached_property:
+            def __init__(self, f):
+                self.f = f
+
+            def __get__(self, obj, typ=None):
+                value = self.f(obj)
+                setattr(self, self.f.__name__, value)
+                return value
+
+
 @dataclass
 class lookup_result:
     filename: str
     _orig_ast: ast.AST
     ast_index: int
 
-    @functools.cached_property
+    @cached_property
     def ast(self):
         return copy.deepcopy(self._orig_ast)
 
-    @functools.cached_property
+    @cached_property
     def expr(self):
         for node in ast.walk(self._orig_ast):
             if node.ast_index == self.ast_index:

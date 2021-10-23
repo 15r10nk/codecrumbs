@@ -1,10 +1,10 @@
 from contextlib import contextmanager
 
 import pytest
+from test_rewrite_code import rewrite_test  # noqa
 
 from breadcrumes import parameter_renamed, renamed
-from calling_expression import calling_expression
-from test_rewrite_code import rewrite_test  # noqa
+from breadcrumes._calling_expression import calling_expression
 
 
 class snapshot:

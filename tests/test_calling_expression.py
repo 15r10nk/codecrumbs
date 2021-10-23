@@ -2,7 +2,7 @@ import ast
 
 import pytest
 
-from calling_expression import AstStructureError, calling_expression
+from breadcrumes._calling_expression import AstStructureError, calling_expression
 
 
 def test_lambda_problem():

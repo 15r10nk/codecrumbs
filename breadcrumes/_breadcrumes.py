@@ -2,8 +2,8 @@ import ast
 import inspect
 import warnings
 
-from calling_expression import calling_expression
-from rewrite_code import replace
+from ._calling_expression import calling_expression
+from ._rewrite_code import replace
 
 
 class start_of:
