@@ -179,4 +179,4 @@ def test_parameter_renamed_misuse(rewrite_test):
 
         @parameter_renamed(old="new")
         def function(old=2):
-            print("new")
+            print("old")

@@ -82,8 +82,10 @@ def test_iadd():
 def test_method():
     class foo:
         def m(self, i):
-            expr = calling_expression().expr
-            assert isinstance(expr, ast.Call)
+            expr = calling_expression()
+            expr.dump()
+            expr = expr.expr
+            assert isinstance(expr, ast.Call), expr
             assert expr.args[0].value == i
             assert expr.func.attr == "m"
 
@@ -107,6 +109,7 @@ def test_property():
         @property
         def m(self):
             expr = calling_expression().expr
+            calling_expression().dump()
             assert isinstance(expr, ast.Attribute)
             assert expr.value.id == "f"
             assert expr.attr == "m"

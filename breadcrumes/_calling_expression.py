@@ -28,7 +28,6 @@ else:
 
     _rewrite_hooks["pytest_assert"] = pytest_rewrite
 
-
 try:
     from functools import cached_property
 except:
@@ -73,10 +72,13 @@ def code_to_node_index(code):
         return None
 
     result = {}
+    last_instr = None
+
     for i in dis.Bytecode(code):
         if i.starts_line is not None:
             last_instr = i
-        result[i.offset] = last_instr.starts_line
+        if last_instr != None:
+            result[i.offset] = last_instr.starts_line
 
     return result
 
@@ -89,7 +91,7 @@ def bc_key(code):
 @functools.lru_cache(maxsize=None)
 def nodes_map(source_file, rewrite_hook):
     with open(source_file) as code:
-        nodes, it = _iter_bc_mapping(code.read(), rewrite_hook)
+        nodes, it = _iter_bc_mapping(source_file, code.read(), rewrite_hook)
 
     for node in ast.walk(nodes):
         node.filename = source_file
@@ -119,21 +121,19 @@ def calling_expression():
     return lookup_result(filename=source_file, _orig_ast=nodes, ast_index=ast_index)
 
 
-def _iter_bc_mapping(code, rewrite_hook=""):
-    nodes, bc_a, bc_b = _bytecodes_mapping(code, rewrite_hook)
-    return nodes, _iter_matched_bytecodes(bc_a, bc_b)
-
-
-def _bytecodes_mapping(code, rewrite_hook):
+def _iter_bc_mapping(source_file, code, rewrite_hook=""):
     code_ast = ast.parse(code)
     _rewrite_hooks[rewrite_hook](code_ast, code)
     nodeindex_ast = copy.deepcopy(code_ast)
     nodes = []
 
-    for i, index_node in enumerate(ast.walk(nodeindex_ast)):
+    for i, (parent_node, index_node) in enumerate(walk_parent_child(nodeindex_ast)):
         index_node.lineno = i
         index_node.col_offset = 0
-        index_node.end_lineno = i
+        if parent_node is not None and isinstance(parent_node, ast.Call):
+            index_node.end_lineno = parent_node.lineno
+        else:
+            index_node.end_lineno = i
         index_node.end_offset = 1
 
     for i, code_node in enumerate(ast.walk(code_ast)):
@@ -142,9 +142,21 @@ def _bytecodes_mapping(code, rewrite_hook):
 
     return (
         code_ast,
-        compile(nodeindex_ast, "foo", mode="exec"),
-        compile(code_ast, "foo", mode="exec"),
+        _iter_matched_bytecodes(
+            compile(nodeindex_ast, source_file, mode="exec"),
+            compile(code_ast, source_file, mode="exec"),
+        ),
     )
+
+
+def walk_parent_child(node):
+    from collections import deque
+
+    todo = deque([(None, node)])
+    while todo:
+        parent, node = todo.popleft()
+        todo.extend([(node, child) for child in ast.iter_child_nodes(node)])
+        yield parent, node
 
 
 def sort_out(func, it):
@@ -166,7 +178,6 @@ def _match_consts(consts_a, consts_b):
     mapping = defaultdict(list)
     for code_b in codes_b:
         matching, codes_a = sort_out(lambda a: _bc_match(a, code_b), codes_a)
-        assert matching
         mapping[code_b] = matching
 
     assert not codes_a
@@ -188,16 +199,23 @@ def _iter_matched_bytecodes(code_a: CodeType, code_b: CodeType):
         yield from _match_consts(code_a.co_consts, code_b.co_consts)
         return
 
-    # yield every code arg
-    for bc_a, bc_b in zip_longest(dis.Bytecode(code_a), dis.Bytecode(code_b)):
+    for bc_a, bc_b in zip_longest(
+        no_NOP(dis.Bytecode(code_a)), no_NOP(dis.Bytecode(code_b))
+    ):
         assert not (bc_a is None or bc_b is None)
 
         if isinstance(bc_a.argval, CodeType):
             yield from _iter_matched_bytecodes(bc_a.argval, bc_b.argval)
 
 
+def no_NOP(instruction_iter):
+    for i in instruction_iter:
+        if i.opname != "NOP":
+            yield i
+
+
 def _bc_match(code_a: CodeType, code_b: CodeType):
-    for a, b in zip_longest(dis.Bytecode(code_a), dis.Bytecode(code_b)):
+    for a, b in zip_longest(no_NOP(dis.Bytecode(code_a)), no_NOP(dis.Bytecode(code_b))):
         if a is None or b is None:
             # branches with different length have usually different entries
             # this is also almost impossible
@@ -205,5 +223,8 @@ def _bc_match(code_a: CodeType, code_b: CodeType):
 
         for attr in ("opcode", "arg"):
             if getattr(a, attr) != getattr(b, attr):
+                return False
+        if isinstance(a.argval, (str, int)):
+            if a.argval != b.argval:
                 return False
     return True
