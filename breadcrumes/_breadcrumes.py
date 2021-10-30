@@ -63,7 +63,6 @@ class renamed:
 
         expr = calling_expression()
         if self.fixes.is_first(expr):
-            expr.dump()
             e = expr.expr
 
             if isinstance(e, ast.Call):
@@ -75,6 +74,16 @@ class renamed:
 
     def __set__(self, obj, value):
         self.warn()
+
+        expr = calling_expression()
+        if self.fixes.is_first(expr):
+            e = expr.expr
+
+            if isinstance(e, ast.Call):
+                e = e.func
+            assert isinstance(e, ast.Attribute), e
+            replace(Range(end_of(e.value), end_of(e)), "." + self.new_name)
+
         return setattr(obj, self.new_name, value)
 
 

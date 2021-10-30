@@ -116,15 +116,22 @@ def test_parameter_renamed_method():
 def test_rename_replacements(rewrite_test):
     class Method:
         old_method = renamed("new_method")
+        old_attr = renamed("new_attr")
 
         def new_method(self):
             print("new")
 
     rewrite_test("m=Method()\nm.old_method()\n", "m=Method()\nm.new_method()\n")
+    rewrite_test("m=Method()\nm.old_method\n", "m=Method()\nm.new_method\n")
+    rewrite_test(
+        "m=Method()\nprint(m.old_method)\n", "m=Method()\nprint(m.new_method)\n"
+    )
 
     rewrite_test("m=Method()\nm.old_method\n", "m=Method()\nm.new_method\n")
     rewrite_test("m=Method()\nm.  old_method\n", "m=Method()\nm.new_method\n")
     rewrite_test("m=Method()\nm  .old_method\n", "m=Method()\nm.new_method\n")
+
+    rewrite_test("m=Method()\nm.old_attr=5\n", "m=Method()\nm.new_attr=5\n")
 
     rewrite_test(
         "m=Method()\nfor i in range(2):m.old_method\n",
