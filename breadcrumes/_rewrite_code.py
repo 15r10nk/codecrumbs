@@ -1,4 +1,5 @@
 import ast
+import contextlib
 import pathlib
 from collections import defaultdict
 from dataclasses import dataclass
@@ -103,10 +104,10 @@ class SourceFile:
 def get_source_file(filename):
     filename = pathlib.Path(filename)
 
-    if filename not in _source_files:
-        _source_files[filename] = SourceFile(filename)
+    if filename not in ChangeRecorder.current._source_files:
+        ChangeRecorder.current._source_files[filename] = SourceFile(filename)
 
-    return _source_files[filename]
+    return ChangeRecorder.current._source_files[filename]
 
 
 def replace(node, new_contend):
@@ -126,7 +127,39 @@ def insert_before(node, new_contend):
     )
 
 
-_source_files = defaultdict(SourceFile)
+class ChangeRecorder:
+    current = None
+
+    def __init__(self):
+
+        self._source_files = defaultdict(SourceFile)
+
+    @contextlib.contextmanager
+    def activate(self):
+        old_recorder = ChangeRecorder.current
+        ChangeRecorder.current = self
+        yield
+        ChangeRecorder.current = old_recorder
+
+    def num_fixes(self):
+        changes = set()
+        for file in self._source_files.values():
+            changes.update(change.change_id for change in file.replacements)
+        return len(changes)
+
+    def fix_all(self):
+        for file in self._source_files.values():
+            file.rewrite()
+
+    def dump(self):
+        for file in self._source_files.values():
+            print("file:", file.filename)
+            for change in file.replacements:
+                print("  change:", change)
+
+
+global_recorder = ChangeRecorder()
+ChangeRecorder.current = global_recorder
 
 
 def code_stream(source):
@@ -154,8 +187,8 @@ def code_stream(source):
 
 def rewrite(filename=None):
     if filename is None:
-        for file in _source_files.values:
+        for file in ChangeRecorder.current._source_files.values:
             file.rewrite()
     else:
-        if filename in _source_files:
-            _source_files[filename].rewrite()
+        if filename in ChangeRecorder.current._source_files:
+            ChangeRecorder.current._source_files[filename].rewrite()

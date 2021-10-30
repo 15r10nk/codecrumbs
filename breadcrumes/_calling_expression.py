@@ -3,6 +3,7 @@ import copy
 import dis
 import functools
 import inspect
+import pathlib
 from collections import defaultdict
 from dataclasses import dataclass
 from itertools import zip_longest
@@ -46,7 +47,7 @@ except:
 
 @dataclass
 class lookup_result:
-    filename: str
+    filename: pathlib.Path
     _orig_ast: ast.AST
     ast_index: int
 
@@ -58,6 +59,8 @@ class lookup_result:
     def expr(self):
         for node in ast.walk(self._orig_ast):
             if node.ast_index == self.ast_index:
+                if isinstance(node, ast.Expr):
+                    node = node.value
                 return copy.deepcopy(node)
 
     def dump(self):
@@ -118,7 +121,9 @@ def calling_expression():
 
     ast_index = node_index[frame.f_lasti]
 
-    return lookup_result(filename=source_file, _orig_ast=nodes, ast_index=ast_index)
+    return lookup_result(
+        filename=pathlib.Path(source_file), _orig_ast=nodes, ast_index=ast_index
+    )
 
 
 def _iter_bc_mapping(source_file, code, rewrite_hook=""):
@@ -130,7 +135,11 @@ def _iter_bc_mapping(source_file, code, rewrite_hook=""):
     for i, (parent_node, index_node) in enumerate(walk_parent_child(nodeindex_ast)):
         index_node.lineno = i
         index_node.col_offset = 0
-        if parent_node is not None and isinstance(parent_node, ast.Call):
+        if (
+            parent_node is not None
+            and isinstance(parent_node, ast.Call)
+            and parent_node.func is index_node
+        ):
             index_node.end_lineno = parent_node.lineno
         else:
             index_node.end_lineno = i

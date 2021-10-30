@@ -114,5 +114,8 @@ def test_property():
             assert expr.value.id == "f"
             assert expr.attr == "m"
 
+            return 5
+
     f = foo()
     f.m
+    print(f.m)
