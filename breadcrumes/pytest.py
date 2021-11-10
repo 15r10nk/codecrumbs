@@ -26,7 +26,6 @@ def pytest_load_initial_conftests(early_config, parser, args):
 def record_changes(request):
     plugin = request.config.pluginmanager.getplugin("_breadcrumes")
     with plugin.change_recorder.activate():
-        print("new session")
         yield plugin.change_recorder
 
 

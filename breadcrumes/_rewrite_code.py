@@ -71,7 +71,6 @@ class SourceFile:
 
         replacements = list(self.replacements)
         replacements.sort()
-        print(replacements)
 
         for r in replacements:
             assert r.start < r.end

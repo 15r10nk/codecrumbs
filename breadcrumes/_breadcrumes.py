@@ -128,7 +128,6 @@ def argument_renamed(since_version=None, **old_params):
 
             if changed:
                 expr = calling_expression()
-                expr.dump()
                 import itertools
                 import token
                 import tokenize
