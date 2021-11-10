@@ -87,7 +87,7 @@ class renamed:
         return setattr(obj, self.new_name, value)
 
 
-def parameter_renamed(since_version=None, **old_params):
+def argument_renamed(since_version=None, **old_params):
     def w(f):
         # check misuse
         sig = inspect.signature(f)

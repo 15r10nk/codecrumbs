@@ -1,1 +1,1 @@
-from ._breadcrumes import parameter_renamed, renamed
+from ._breadcrumes import argument_renamed, renamed

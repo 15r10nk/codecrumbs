@@ -3,7 +3,7 @@ from contextlib import contextmanager
 import pytest
 from test_rewrite_code import rewrite_test  # noqa
 
-from breadcrumes import parameter_renamed, renamed
+from breadcrumes import argument_renamed, renamed
 from breadcrumes._calling_expression import calling_expression
 
 
@@ -95,7 +95,7 @@ def test_renamed_classmethod():
 
 def test_parameter_renamed_method():
     class Example:
-        @parameter_renamed(old="new")
+        @argument_renamed(old="new")
         def method(self, new):
             assert new == 5
 
@@ -146,7 +146,7 @@ def test_rename_replacements(rewrite_test, obj):
 
 def test_parameter_renames(rewrite_test):
     class Method:
-        @parameter_renamed(old="new")
+        @argument_renamed(old="new")
         def method(self, other=2, new=1):
             print("new")
 
@@ -179,7 +179,7 @@ def test_parameter_renamed_misuse(rewrite_test):
         match="parmeter 'old' should be removed from signature if it is renamed to 'new'",
     ):
 
-        @parameter_renamed(old="new")
+        @argument_renamed(old="new")
         def function(old=2, new=1):
             print("new")
 
@@ -187,6 +187,6 @@ def test_parameter_renamed_misuse(rewrite_test):
         TypeError, match="parmeter 'old' should be renamed to 'new' in the signature"
     ):
 
-        @parameter_renamed(old="new")
+        @argument_renamed(old="new")
         def function(old=2):
             print("old")
