@@ -19,12 +19,16 @@ class snapshot:
 
 
 @contextmanager
-def deprecation(msg):
+def deprecation(warning=1):
 
     with pytest.warns(DeprecationWarning) as records:
         yield
-    assert len(records) == 1, [r.message for r in records]
-    assert records[0].message.args[0] == msg
+
+    if isinstance(warning, int):
+        assert len(records) == warning
+    elif isinstance(warning, str):
+        assert len(records) == 1
+        assert records[0].message.args[0] == warning
 
 
 @contextmanager
@@ -93,11 +97,12 @@ def test_renamed_classmethod():
         assert Example.old() == 1
 
 
-def test_parameter_renamed_method():
+def test_parameter_renamed_method(rewrite_test):
     class Example:
         @argument_renamed(old="new")
         def method(self, new):
             assert new == 5
+            print(new)
 
     e = Example()
 
@@ -110,7 +115,10 @@ def test_parameter_renamed_method():
     with pytest.raises(
         TypeError, match="old=... and new=... can not be used at the same time"
     ):
-        e.method(old=5, new=5)
+        rewrite_test("e.method(old=5, new=5)")
+
+
+#    e.method(**{"old":5})
 
 
 @pytest.mark.parametrize("obj", ["m", "ma[0]", "f()"])
@@ -128,20 +136,29 @@ def test_rename_replacements(rewrite_test, obj):
     def f():
         return m
 
-    rewrite_test(f"{obj}.old_method()", f"{obj}.new_method()")
-    rewrite_test(f"{obj}.old_method", f"{obj}.new_method")
-    rewrite_test(f"print({obj}.old_method)", f"print({obj}.new_method)")
+    with deprecation():
+        rewrite_test(f"{obj}.old_method()", f"{obj}.new_method()")
+    with deprecation():
+        rewrite_test(f"{obj}.old_method", f"{obj}.new_method")
+    with deprecation():
+        rewrite_test(f"print({obj}.old_method)", f"print({obj}.new_method)")
 
-    rewrite_test(f"{obj}.old_method", f"{obj}.new_method")
-    rewrite_test(f"{obj}.  old_method", f"{obj}.new_method")
-    rewrite_test(f"{obj}  .old_method", f"{obj}.new_method")
+    with deprecation():
+        rewrite_test(f"{obj}.old_method", f"{obj}.new_method")
+    with deprecation():
+        rewrite_test(f"{obj}.  old_method", f"{obj}.new_method")
+    with deprecation():
+        rewrite_test(f"{obj}  .old_method", f"{obj}.new_method")
 
-    rewrite_test(f"{obj}.old_attr=5", f"{obj}.new_attr=5")
+    with deprecation():
+        rewrite_test(f"{obj}.old_attr=5", f"{obj}.new_attr=5", statement=True)
 
-    rewrite_test(
-        f"for i in range(3):{obj}.old_method",
-        f"for i in range(3):{obj}.new_method",
-    )
+    with deprecation(3):
+        rewrite_test(
+            f"for i in range(3):{obj}.old_method",
+            f"for i in range(3):{obj}.new_method",
+            statement=True,
+        )
 
 
 def test_parameter_renames(rewrite_test):
@@ -152,17 +169,20 @@ def test_parameter_renames(rewrite_test):
 
     m = Method()
 
-    rewrite_test("m.method(old=5)", "m.method(new=5)")
+    with deprecation():
+        rewrite_test("m.method(old=5)", "m.method(new=5)")
 
-    rewrite_test("m.method(other=3,old=5)", "m.method(other=3,new=5)")
+    with deprecation():
+        rewrite_test("m.method(other=3,old=5)", "m.method(other=3,new=5)")
 
-    rewrite_test("m.method(old=5,other=3)", "m.method(new=5,other=3)")
+    with deprecation():
+        rewrite_test("m.method(old=5,other=3)", "m.method(new=5,other=3)")
 
-    rewrite_test("m.method(3,old=5)", "m.method(3,new=5)")
+    with deprecation():
+        rewrite_test("m.method(3,old=5)", "m.method(3,new=5)")
 
-    rewrite_test("m.method({'old':5})")
-
-    rewrite_test("m.method({'old':5})")
+    with deprecation():
+        rewrite_test("m.method(**{'old':5})")
 
     rewrite_test("m.method(other=5)")
 
