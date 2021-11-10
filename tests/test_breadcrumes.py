@@ -113,7 +113,8 @@ def test_parameter_renamed_method():
         e.method(old=5, new=5)
 
 
-def test_rename_replacements(rewrite_test):
+@pytest.mark.parametrize("obj", ["m", "ma[0]", "f()"])
+def test_rename_replacements(rewrite_test, obj):
     class Method:
         old_method = renamed("new_method")
         old_attr = renamed("new_attr")
@@ -122,20 +123,24 @@ def test_rename_replacements(rewrite_test):
             print("new")
 
     m = Method()
+    ma = [m, m]
 
-    rewrite_test("m.old_method()", "m.new_method()")
-    rewrite_test("m.old_method", "m.new_method")
-    rewrite_test("print(m.old_method)", "print(m.new_method)")
+    def f():
+        return m
 
-    rewrite_test("m.old_method", "m.new_method")
-    rewrite_test("m.  old_method", "m.new_method")
-    rewrite_test("m  .old_method", "m.new_method")
+    rewrite_test(f"{obj}.old_method()", f"{obj}.new_method()")
+    rewrite_test(f"{obj}.old_method", f"{obj}.new_method")
+    rewrite_test(f"print({obj}.old_method)", f"print({obj}.new_method)")
 
-    rewrite_test("m.old_attr=5", "m.new_attr=5")
+    rewrite_test(f"{obj}.old_method", f"{obj}.new_method")
+    rewrite_test(f"{obj}.  old_method", f"{obj}.new_method")
+    rewrite_test(f"{obj}  .old_method", f"{obj}.new_method")
+
+    rewrite_test(f"{obj}.old_attr=5", f"{obj}.new_attr=5")
 
     rewrite_test(
-        "for i in range(2):m.old_method",
-        "for i in range(2):m.new_method",
+        f"for i in range(3):{obj}.old_method",
+        f"for i in range(3):{obj}.new_method",
     )
 
 
