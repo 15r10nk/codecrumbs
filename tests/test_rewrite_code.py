@@ -21,6 +21,9 @@ def rewrite_test(tmp_path):
         if new_code == None:
             new_code = old_code
 
+        old_code += "\n"
+        new_code += "\n"
+
         frame = inspect.currentframe().f_back
         nonlocal idx
         filename = tmp_path / f"test_{idx}.py"

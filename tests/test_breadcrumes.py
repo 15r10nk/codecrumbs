@@ -121,21 +121,21 @@ def test_rename_replacements(rewrite_test):
         def new_method(self):
             print("new")
 
-    rewrite_test("m=Method()\nm.old_method()\n", "m=Method()\nm.new_method()\n")
-    rewrite_test("m=Method()\nm.old_method\n", "m=Method()\nm.new_method\n")
+    m = Method()
+
+    rewrite_test("m.old_method()", "m.new_method()")
+    rewrite_test("m.old_method", "m.new_method")
+    rewrite_test("print(m.old_method)", "print(m.new_method)")
+
+    rewrite_test("m.old_method", "m.new_method")
+    rewrite_test("m.  old_method", "m.new_method")
+    rewrite_test("m  .old_method", "m.new_method")
+
+    rewrite_test("m.old_attr=5", "m.new_attr=5")
+
     rewrite_test(
-        "m=Method()\nprint(m.old_method)\n", "m=Method()\nprint(m.new_method)\n"
-    )
-
-    rewrite_test("m=Method()\nm.old_method\n", "m=Method()\nm.new_method\n")
-    rewrite_test("m=Method()\nm.  old_method\n", "m=Method()\nm.new_method\n")
-    rewrite_test("m=Method()\nm  .old_method\n", "m=Method()\nm.new_method\n")
-
-    rewrite_test("m=Method()\nm.old_attr=5\n", "m=Method()\nm.new_attr=5\n")
-
-    rewrite_test(
-        "m=Method()\nfor i in range(2):m.old_method\n",
-        "m=Method()\nfor i in range(2):m.new_method\n",
+        "for i in range(2):m.old_method",
+        "for i in range(2):m.new_method",
     )
 
 
@@ -145,28 +145,26 @@ def test_parameter_renames(rewrite_test):
         def method(self, other=2, new=1):
             print("new")
 
-    rewrite_test("m=Method()\nm.method(old=5)\n", "m=Method()\nm.method(new=5)\n")
+    m = Method()
 
-    rewrite_test(
-        "m=Method()\nm.method(other=3,old=5)\n", "m=Method()\nm.method(other=3,new=5)\n"
-    )
+    rewrite_test("m.method(old=5)", "m.method(new=5)")
 
-    rewrite_test(
-        "m=Method()\nm.method(old=5,other=3)\n", "m=Method()\nm.method(new=5,other=3)\n"
-    )
+    rewrite_test("m.method(other=3,old=5)", "m.method(other=3,new=5)")
 
-    rewrite_test("m=Method()\nm.method(3,old=5)\n", "m=Method()\nm.method(3,new=5)\n")
+    rewrite_test("m.method(old=5,other=3)", "m.method(new=5,other=3)")
 
-    rewrite_test("m=Method()\nm.method({'old':5})\n")
+    rewrite_test("m.method(3,old=5)", "m.method(3,new=5)")
 
-    rewrite_test("m=Method()\nm.method({'old':5})\n")
+    rewrite_test("m.method({'old':5})")
 
-    rewrite_test("m=Method()\nm.method(other=5)\n")
+    rewrite_test("m.method({'old':5})")
 
-    rewrite_test("m=Method()\nm.method(1,2)\n")
+    rewrite_test("m.method(other=5)")
+
+    rewrite_test("m.method(1,2)")
 
     with pytest.raises(TypeError):
-        rewrite_test("m=Method()\nm.method(old=5,new=3)\n")
+        rewrite_test("m.method(old=5,new=3)")
 
 
 def test_parameter_renamed_misuse(rewrite_test):
