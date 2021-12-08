@@ -4,18 +4,6 @@ import pytest
 from test_rewrite_code import rewrite_test  # noqa
 
 from breadcrumes import argument_renamed, renamed
-from breadcrumes._calling_expression import calling_expression
-
-
-class snapshot:
-    def __init__(self, value=None):
-        self.loc = calling_expression()
-        self.value = value
-
-    def __eq__(self, other):
-        if self.value != other:
-            print("cmp", other)
-        return False
 
 
 @contextmanager
@@ -201,7 +189,7 @@ def test_parameter_renamed_misuse(rewrite_test):
 
         @argument_renamed(old="new")
         def function(old=2, new=1):
-            print("new")
+            pass  # pragma: no cover
 
     with pytest.raises(
         TypeError, match="parmeter 'old' should be renamed to 'new' in the signature"
@@ -209,4 +197,4 @@ def test_parameter_renamed_misuse(rewrite_test):
 
         @argument_renamed(old="new")
         def function(old=2):
-            print("old")
+            pass  # pragma: no cover

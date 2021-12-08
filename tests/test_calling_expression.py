@@ -10,7 +10,7 @@ def test_lambda_problem():
 
     def foo():
         expr = calling_expression().expr
-        assert expr.func.id == "foo"
+        assert expr.func.id == "foo"  # pragma: no cover
 
     with pytest.raises(AstStructureError):
         foo()
