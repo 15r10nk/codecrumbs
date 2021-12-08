@@ -79,22 +79,31 @@ class SourceFile:
         for lhs, rhs in pairwise(replacements):
             assert lhs.end <= rhs.start
 
+        if not replacements:
+            return
+
         with open(self.filename, newline="") as code:
             code = code.read()
 
         new_code = ""
         last_i = 0
+        add_end = True
+
         for pos, i, c in code_stream(code):
             if replacements:
                 r = replacements[0]
                 if pos == r.start:
                     new_code += code[last_i:i] + r.text
+                    add_end = False
                 if pos == r.end:
                     last_i = i
+                    add_end = True
                     replacements.pop(0)
             else:
                 break
-        new_code += code[last_i:]
+
+        if add_end:
+            new_code += code[last_i:]
 
         with open(self.filename, "w") as code:
             code.write(new_code)

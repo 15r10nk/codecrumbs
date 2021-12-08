@@ -59,9 +59,11 @@ def rewrite_test(tmp_path):
             new_code = old_code
 
         internal(old_code + "\n", new_code + "\n")
-        if not statement:
-            with pytest.warns(None):
+        with pytest.warns(None):
+            if not statement:
                 internal(f"print({old_code})\n", f"print({new_code})\n")
+
+            internal(old_code.strip(), new_code.strip())
 
     yield test
 
