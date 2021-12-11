@@ -3,7 +3,8 @@ from contextlib import contextmanager
 import pytest
 from test_rewrite_code import rewrite_test  # noqa
 
-from breadcrumes import argument_renamed, renamed
+from breadcrumes import argument_renamed
+from breadcrumes import renamed
 
 
 @contextmanager

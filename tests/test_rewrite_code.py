@@ -5,7 +5,8 @@ from contextlib import redirect_stdout
 import pytest
 
 from breadcrumes._calling_expression import calling_expression
-from breadcrumes._rewrite_code import replace, rewrite
+from breadcrumes._rewrite_code import replace
+from breadcrumes._rewrite_code import rewrite
 
 
 @pytest.fixture
