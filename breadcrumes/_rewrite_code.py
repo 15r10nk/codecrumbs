@@ -105,8 +105,8 @@ class SourceFile:
         if add_end:
             new_code += code[last_i:]
 
-        with open(self.filename, "w") as code:
-            code.write(new_code)
+        with open(self.filename, "bw") as code:
+            code.write(new_code.encode())
 
 
 def get_source_file(filename):
