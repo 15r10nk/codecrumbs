@@ -9,6 +9,19 @@ from dataclasses import dataclass
 from itertools import zip_longest
 from types import CodeType
 
+if False:
+    debug_log = (pathlib.Path(__file__).parent / "debug.log").open("w")
+
+    def debug(*args):
+        print(*args, file=debug_log)
+
+    def debug_code(code):
+        import io
+
+        s = io.StringIO()
+        dis.dis(code, file=s)
+        debug(s.getvalue())
+
 
 class AstStructureError(Exception):
     pass
@@ -86,15 +99,23 @@ def code_to_node_index(code):
     return result
 
 
+PRINT_EXPR = dis.opmap["PRINT_EXPR"]
+POP_TOP = dis.opmap["POP_TOP"]
+
+
 def bc_key(code):
     # return code
-    return tuple((i.opcode, i.arg, i.starts_line) for i in dis.Bytecode(code))
+    def map_op(op):
+        if op == PRINT_EXPR:
+            return POP_TOP
+        return op
+
+    return tuple((map_op(i.opcode), i.arg, i.starts_line) for i in dis.Bytecode(code))
 
 
 @functools.lru_cache(maxsize=None)
-def nodes_map(source_file, rewrite_hook):
-    with open(source_file) as code:
-        nodes, it = _iter_bc_mapping(source_file, code.read(), rewrite_hook)
+def nodes_map(source_file, code, rewrite_hook):
+    nodes, it = _iter_bc_mapping(source_file, code, rewrite_hook)
 
     for node in ast.walk(nodes):
         node.filename = source_file
@@ -106,10 +127,12 @@ def nodes_map(source_file, rewrite_hook):
 def calling_expression():
     frame = inspect.currentframe().f_back.f_back
 
-    source_file = inspect.getsourcefile(frame)
+    source_file = inspect.getfile(frame)
+    code = "".join(inspect.findsource(frame)[0])
 
     for rewrite_hook in _rewrite_hooks:
-        nodes, bc_map = nodes_map(source_file, rewrite_hook)
+
+        nodes, bc_map = nodes_map(source_file, code, rewrite_hook)
 
         node_index = bc_map.get(bc_key(frame.f_code), None)
         if node_index is not None:

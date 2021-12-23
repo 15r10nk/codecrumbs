@@ -42,6 +42,21 @@ class FixIndex:
 
 
 class renamed:
+    """
+    specifies that all read and write accesses of an attribute should be renamed
+    usage:
+
+    >>> import sys; sys.stderr = sys.stdout
+    >>> class test:
+    ...     old_attribute=renamed("new_attribute")
+    ...     new_attribute=5
+    >>> test.old_attribute
+    5
+
+    An access to the old attribute results in a deprecation warning and the calling code is memorized for refacting.
+
+    """
+
     def __init__(self, newname, since_version=None):
         self.new_name = newname
         self.fixes = FixIndex()

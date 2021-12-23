@@ -14,7 +14,42 @@ pytest-breadcrumes
     :target: https://ci.appveyor.com/project/15r10nk/pytest-breadcrumes/branch/master
     :alt: See Build Status on AppVeyor
 
-leave breadcurmes behind so that other can adopt your changes
+Breadcrumes devides refactorings in a declaration phase, where you leave breadcrumes behind
+and an application step, where you or some one else follows the breadcrumes.
+
+simple example which renames one method:
+
+.. code:
+    class Example:
+        # delete old code ...
+        # def old_method(self):
+        #    pass
+        
+        old_method= breadcrumes.renamed("new_method")
+
+        def new_method(self):
+            print("new stuff ...")
+    
+    # some where else
+    e=Example()
+
+    e.old_method()
+
+and apply the refactorings later
+
+.. code:
+    breadcrumes example.py
+    # or 
+    pytest --breadcrumes-fix test_example.py
+
+You can use breadcrumes instead of python to execute your code, or pytest to run your tests and apply the renamings automatically.
+
+This can be used to fix the small things in your library you wanted to fix but never did,
+ because you wanted to stay backwards compatible or didn't wanted you user to fix 1000 renamings in their code.
+
+with breadcrumes you can fix.
+ * method / attribute names 
+ * rename named arguments of functions
 
 ----
 
