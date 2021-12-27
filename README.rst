@@ -24,12 +24,12 @@ simple example which renames one method:
         # delete old code ...
         # def old_method(self):
         #    pass
-        
+
         old_method= breadcrumes.renamed("new_method")
 
         def new_method(self):
             print("new stuff ...")
-    
+
     # some where else
     e=Example()
 
@@ -39,7 +39,7 @@ and apply the refactorings later
 
 .. code:
     breadcrumes example.py
-    # or 
+    # or
     pytest --breadcrumes-fix test_example.py
 
 You can use breadcrumes instead of python to execute your code, or pytest to run your tests and apply the renamings automatically.
@@ -48,7 +48,7 @@ This can be used to fix the small things in your library you wanted to fix but n
  because you wanted to stay backwards compatible or didn't wanted you user to fix 1000 renamings in their code.
 
 with breadcrumes you can fix.
- * method / attribute names 
+ * method / attribute names
  * rename named arguments of functions
 
 ----

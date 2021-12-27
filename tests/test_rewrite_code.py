@@ -21,7 +21,6 @@ def rewrite_test(tmp_path):
             filename = tmp_path / f"test_{idx}.py"
             idx += 1
 
-
             filename.write_bytes(old_code.encode())
             assert old_code.encode() == filename.read_bytes()
 
