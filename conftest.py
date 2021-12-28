@@ -1,14 +1,15 @@
 pytest_plugins = "pytester"
 
 import pytest
+from _pytest.doctest import DoctestItem
 import warnings
 import sys
 
 
-@pytest.fixture
-def show_warning():
+@pytest.fixture(autouse=True)
+def show_warning(request):
+    if isinstance(request.node, DoctestItem):
 
-    try:
         with warnings.catch_warnings():
 
             def showwarning(message, category, filename, lineno, file=None, line=None):
@@ -19,7 +20,5 @@ def show_warning():
             warnings.showwarning = showwarning
 
             yield
-    except:
-        raise
-    finally:
-        pass
+    else:
+        yield

@@ -46,8 +46,6 @@ class renamed:
     specifies that all read and write accesses of an attribute should be renamed
     usage:
 
-    >>> getfixture("show_warning")
-    >>> import sys; sys.stderr = sys.stdout
     >>> class test:
     ...     old_attribute=renamed("new_attribute")
     ...     new_attribute=5
