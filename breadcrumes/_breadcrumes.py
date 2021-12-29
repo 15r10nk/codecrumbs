@@ -89,7 +89,7 @@ class renamed:
     file.py:1: DeprecationWarning: ".data_x" should be replaced with ".x" (fixable with breadcrumes)
     1
 
-    It renames also hasattr() calls and preserves normal attribute semantics
+    It renames also has/get/set/delattr() calls if the argument is a Constant
 
     >>> class Test:
     ...     old_attribute = renamed("new_attribute")

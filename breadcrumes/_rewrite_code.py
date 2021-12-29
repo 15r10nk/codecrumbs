@@ -15,10 +15,13 @@ except:
         return zip(a, b)
 
 
+from typing import Tuple
+
+
 @dataclass(order=True)
 class Replacement:
-    start: (int, int)
-    end: (int, int)
+    start: Tuple[int, int]
+    end: Tuple[int, int]
     text: str
     change_id: int = 0
 
