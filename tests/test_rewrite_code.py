@@ -13,7 +13,9 @@ from breadcrumes._rewrite_code import rewrite
 def rewrite_test(tmp_path):
     idx = 0
 
-    def test(old_code, new_code=None, statement=False, cmp_output=True):
+    def test(
+        old_code, new_code=None, statement=False, cmp_output=True, assert_stmt=None
+    ):
         def internal(old_code, new_code):
             frame = inspect.currentframe().f_back.f_back
 
@@ -63,6 +65,12 @@ def rewrite_test(tmp_path):
         with pytest.warns(None):
             if not statement:
                 internal(f"print({old_code})\n", f"print({new_code})\n")
+
+            if assert_stmt is True:
+                internal(f"assert {old_code}\n", f"assert {new_code}\n")
+
+            if assert_stmt is False:
+                internal(f"assert not {old_code}\n", f"assert not {new_code}\n")
 
             internal(old_code.strip(), new_code.strip())
 

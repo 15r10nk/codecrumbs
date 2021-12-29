@@ -75,6 +75,7 @@ class SourceFile:
         for r in replacements:
             assert r.start < r.end
 
+        print(replacements)
         # TODO check for overlapping replacements
         for lhs, rhs in pairwise(replacements):
             assert lhs.end <= rhs.start

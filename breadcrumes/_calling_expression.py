@@ -124,8 +124,11 @@ def nodes_map(source_file, code, rewrite_hook):
     return nodes, bc_map
 
 
-def calling_expression():
-    frame = inspect.currentframe().f_back.f_back
+def calling_expression(back=1):
+    frame = inspect.currentframe().f_back
+
+    for _ in range(back):
+        frame = frame.f_back
 
     source_file = inspect.getfile(frame)
     code = "".join(inspect.findsource(frame)[0])

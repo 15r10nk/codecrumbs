@@ -40,66 +40,137 @@ class FixIndex:
         self.index.add(fix_id)
         return first
 
+    def clear(self):
+        self.index = set()
+
 
 class renamed:
     """
     specifies that all read and write accesses of an attribute should be renamed
     usage:
 
-    >>> class test:
-    ...     old_attribute=renamed("new_attribute")
-    ...     new_attribute=5
-    >>> test.old_attribute
+    >>> class Test:
+    ...     old_attribute = renamed("new_attribute")
+    ...     new_attribute = 5
+    ...
+    >>> Test.old_attribute
     file.py:1: DeprecationWarning: ".old_attribute" should be replaced with ".new_attribute" (fixable with breadcrumes)
     5
 
     An access to the old attribute results in a deprecation warning and the calling code is memorized for refacting.
 
+    It can also be used to rename methods:
+
+    >>> class Test:
+    ...     old_method = renamed("new_method")
+    ...
+    ...     def new_method(self):
+    ...         return 5
+    ...
+    >>> t = Test()
+    >>> t.old_method()
+    file.py:1: DeprecationWarning: ".old_method" should be replaced with ".new_method" (fixable with breadcrumes)
+    5
+
+    And also to rename instance attributes:
+
+    >>> class Point:
+    ...     data_x = renamed("x")
+    ...     data_y = renamed("y")
+    ...
+    ...     def __init__(self, x, y):
+    ...         self.data_x = x
+    ...         self.data_y = y
+    ...
+    >>> p = Point(1, 2)
+    file.py:6: DeprecationWarning: ".data_x" should be replaced with ".x" (fixable with breadcrumes)
+    file.py:7: DeprecationWarning: ".data_y" should be replaced with ".y" (fixable with breadcrumes)
+    >>> p.data_x
+    file.py:1: DeprecationWarning: ".data_x" should be replaced with ".x" (fixable with breadcrumes)
+    1
+
+    It renames also hasattr() calls and preserves normal attribute semantics
+
+    >>> class Test:
+    ...     old_attribute = renamed("new_attribute")
+    ...
+    >>> t = Test()
+    >>> assert not hasattr(t, "old_attribute")
+    file.py:1: DeprecationWarning: hasattr(...,"old_attribute") should be replaced with hasattr(...,"new_attribute") (fixable with breadcrumes)
+
     """
 
-    def __init__(self, newname, since_version=None):
+    def __init__(self, newname):
         self.new_name = newname
         self.fixes = FixIndex()
 
     def __set_name__(self, owner, name):
         self.current_name = name
 
-    def warn(self):
+    def warn(self, back=3):
         warnings.warn(
             f'".{self.current_name}" should be replaced with ".{self.new_name}" (fixable with breadcrumes)',
             DeprecationWarning,
-            stacklevel=3,
+            stacklevel=back,
         )
 
-    def __get__(self, obj, objtype=None):
-        self.warn()
-        if obj is None:
-            obj = objtype
+    def warn_attr(self, func_name, back=3):
+        warnings.warn(
+            f'{func_name}(...,"{self.current_name}") should be replaced with {func_name}(...,"{self.new_name}") (fixable with breadcrumes)',
+            DeprecationWarning,
+            stacklevel=back,
+        )
 
-        expr = calling_expression()
+    def generic_fix(self):
+
+        expr = calling_expression(back=2)
         if self.fixes.is_first(expr):
             e = expr.expr
 
             if isinstance(e, ast.Call):
                 e = e.func
-            assert isinstance(e, ast.Attribute), e
-            replace(Range(end_of(e.value), end_of(e)), "." + self.new_name)
+
+            if isinstance(e, ast.Name) and e.id in (
+                "getattr",
+                "hasattr",
+                "setattr",
+                "delattr",
+            ):
+                namearg = expr.expr.args[1]
+                if isinstance(namearg, ast.Constant):
+                    # getattr(obj,"attr")
+                    self.warn_attr(e.id, 4)
+                    replace(namearg, f'"{self.new_name}"')
+                else:
+                    # getattr(obj,attr_var)
+                    warnings.warn(
+                        f'{e.id}(...,attr) is called with attr="{self.current_name}" but should be called with "{self.new_name}" (please fix manual)',
+                        DeprecationWarning,
+                        stacklevel=3,
+                    )
+            else:
+                assert isinstance(e, ast.Attribute), e
+                # obj.attr
+                self.warn(4)
+                replace(Range(end_of(e.value), end_of(e)), "." + self.new_name)
+
+    def __get__(self, obj, objtype=None):
+        if obj is None:
+            obj = objtype
+
+        self.generic_fix()
 
         return getattr(obj, self.new_name)
 
     def __set__(self, obj, value):
-        self.warn()
-
-        expr = calling_expression()
-        if self.fixes.is_first(expr):
-            e = expr.expr
-
-            if isinstance(e, ast.Call):
-                e = e.func
-            assert isinstance(e, ast.Attribute), e
-            replace(Range(end_of(e.value), end_of(e)), "." + self.new_name)
+        self.generic_fix()
 
         return setattr(obj, self.new_name, value)
+
+    def __delete__(self, obj):
+        self.generic_fix()
+
+        delattr(obj, self.new_name)
 
 
 def argument_renamed(since_version=None, **old_params):
