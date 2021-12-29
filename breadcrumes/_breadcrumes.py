@@ -107,21 +107,7 @@ class renamed:
     def __set_name__(self, owner, name):
         self.current_name = name
 
-    def warn(self, back=3):
-        warnings.warn(
-            f'".{self.current_name}" should be replaced with ".{self.new_name}" (fixable with breadcrumes)',
-            DeprecationWarning,
-            stacklevel=back,
-        )
-
-    def warn_attr(self, func_name, back=3):
-        warnings.warn(
-            f'{func_name}(...,"{self.current_name}") should be replaced with {func_name}(...,"{self.new_name}") (fixable with breadcrumes)',
-            DeprecationWarning,
-            stacklevel=back,
-        )
-
-    def generic_fix(self):
+    def __generic_fix(self):
 
         expr = calling_expression(back=2)
         if self.fixes.is_first(expr):
@@ -139,7 +125,11 @@ class renamed:
                 namearg = expr.expr.args[1]
                 if isinstance(namearg, ast.Constant):
                     # getattr(obj,"attr")
-                    self.warn_attr(e.id, 4)
+                    warnings.warn(
+                        f'{e.id}(...,"{self.current_name}") should be replaced with {e.id}(...,"{self.new_name}") (fixable with breadcrumes)',
+                        DeprecationWarning,
+                        stacklevel=3,
+                    )
                     replace(namearg, f'"{self.new_name}"')
                 else:
                     # getattr(obj,attr_var)
@@ -151,24 +141,28 @@ class renamed:
             else:
                 assert isinstance(e, ast.Attribute), e
                 # obj.attr
-                self.warn(4)
+                warnings.warn(
+                    f'".{self.current_name}" should be replaced with ".{self.new_name}" (fixable with breadcrumes)',
+                    DeprecationWarning,
+                    stacklevel=3,
+                )
                 replace(Range(end_of(e.value), end_of(e)), "." + self.new_name)
 
     def __get__(self, obj, objtype=None):
         if obj is None:
             obj = objtype
 
-        self.generic_fix()
+        self.__generic_fix()
 
         return getattr(obj, self.new_name)
 
     def __set__(self, obj, value):
-        self.generic_fix()
+        self.__generic_fix()
 
         return setattr(obj, self.new_name, value)
 
     def __delete__(self, obj):
-        self.generic_fix()
+        self.__generic_fix()
 
         delattr(obj, self.new_name)
 
