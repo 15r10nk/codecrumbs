@@ -188,9 +188,11 @@ def argument_renamed(since_version=None, **old_params):
     file.py:1: DeprecationWarning: argument name "old_name=" should be replaced with "new_name=" (fixable with breadcrumes)
     5
 
-    :raises TypeError: if the old parameter is still present in the signature
+    :raises TypeError: if the old named argument is still present in the signature
 
     """
+
+    reverse_old_params = {v: k for k, v in old_params.items()}
 
     def w(f):
         # check misuse
@@ -259,6 +261,18 @@ def argument_renamed(since_version=None, **old_params):
 
             f(*a, **new_ka)
 
+        signature = inspect.signature(f)
+        parameters = list(signature.parameters.values()) + [
+            signature.parameters[v].replace(
+                kind=inspect.Parameter.KEYWORD_ONLY,
+                name=k,
+            )
+            for k, v in old_params.items()
+        ]
+
+        r.__signature__ = inspect.Signature(
+            parameters, return_annotation=signature.return_annotation
+        )
         return r
 
     return w

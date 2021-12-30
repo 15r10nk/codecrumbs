@@ -10,6 +10,20 @@ def replace_warning(old, new):
     return f'".{old}" should be replaced with ".{new}" (fixable with breadcrumes)'
 
 
+import inspect
+
+
+def test_preserve_signature():
+    class Test:
+        a = renamed("b")
+
+        def b(a, b):
+            pass
+
+    with pytest.warns(DeprecationWarning):
+        assert inspect.signature(Test.a) == inspect.signature(Test.b)
+
+
 def test_renamed_attribute(test_rewrite):
     class Example:
         old = renamed("new")

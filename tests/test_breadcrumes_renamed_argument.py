@@ -1,6 +1,20 @@
+import inspect
+
 import pytest
 
 from breadcrumes import argument_renamed
+
+
+def test_preserve_signature():
+    class Test:
+        @argument_renamed(old="new")
+        def a(new: str) -> int:
+            return 0
+
+        def b(new: str, *, old: str) -> int:
+            return 0
+
+    assert inspect.signature(Test.a) == inspect.signature(Test.b)
 
 
 def test_parameter_renames(test_rewrite):
