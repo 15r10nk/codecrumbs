@@ -168,6 +168,30 @@ class renamed:
 
 
 def argument_renamed(since_version=None, **old_params):
+    """
+    `argument_renamed` is an decorator which can be used to rename argument names on the calling side of a method or fuction.
+
+    example problem:
+
+    >>> def function(old_name):
+    ...     print(old_name)
+    ...
+    >>> function(old_name=5)
+    5
+
+    refactoring:
+
+    >>> @argument_renamed(old_name="new_name")
+    ... def function(new_name):
+    ...     print(new_name)
+    >>> function(old_name=5)
+    file.py:1: DeprecationWarning: argument name "old_name=" should be replaced with "new_name=" (fixable with breadcrumes)
+    5
+
+    :raises TypeError: if the old parameter is still present in the signature
+
+    """
+
     def w(f):
         # check misuse
         sig = inspect.signature(f)
@@ -208,12 +232,9 @@ def argument_renamed(since_version=None, **old_params):
 
             if changed:
                 expr = calling_expression()
-                import itertools
                 import token
-                import tokenize
 
-                with open(expr.filename) as file:
-                    tokens = list(tokenize.generate_tokens(file.readline))
+                tokens = expr.tokens
 
                 for arg in expr.expr.keywords:
                     if arg.arg not in old_params:
@@ -233,14 +254,6 @@ def argument_renamed(since_version=None, **old_params):
 
                     assert op.string == "="
                     assert name.string == arg.arg
-
-                    with open(expr.filename) as file:
-                        tokens = list(
-                            itertools.takewhile(
-                                lambda t: t.start < start,
-                                tokenize.generate_tokens(file.readline),
-                            )
-                        )
 
                     replace(name, old_params[arg.arg])
 

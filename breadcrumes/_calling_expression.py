@@ -3,6 +3,7 @@ import copy
 import dis
 import functools
 import inspect
+import io
 import pathlib
 from collections import defaultdict
 from dataclasses import dataclass
@@ -58,15 +59,24 @@ except:
                 return value
 
 
+import tokenize
+
+
 @dataclass
 class lookup_result:
     filename: pathlib.Path
     _orig_ast: ast.AST
     ast_index: int
+    code: str
 
     @cached_property
     def ast(self):
         return copy.deepcopy(self._orig_ast)
+
+    @cached_property
+    def tokens(self):
+        file = io.StringIO(self.code)
+        return list(tokenize.generate_tokens(file.readline))
 
     @cached_property
     def expr(self):
@@ -147,7 +157,10 @@ def calling_expression(back=1):
     ast_index = node_index[frame.f_lasti]
 
     return lookup_result(
-        filename=pathlib.Path(source_file), _orig_ast=nodes, ast_index=ast_index
+        filename=pathlib.Path(source_file),
+        _orig_ast=nodes,
+        ast_index=ast_index,
+        code=code,
     )
 
 
