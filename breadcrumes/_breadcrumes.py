@@ -254,7 +254,7 @@ def argument_renamed(since_version=None, **old_params):
                     name, op = mytokens[-2:]
                     name.filename = expr.filename
 
-                    assert op.string == "="
+                    assert op.string == "=", op.string
                     assert name.string == arg.arg
 
                     replace(name, old_params[arg.arg])
@@ -273,6 +273,7 @@ def argument_renamed(since_version=None, **old_params):
         r.__signature__ = inspect.Signature(
             parameters, return_annotation=signature.return_annotation
         )
+
         return r
 
     return w

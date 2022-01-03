@@ -13,32 +13,40 @@ def run_test(old_code, new_code, *, warning=None, output="", filename, frame):
     filename.write_bytes(old_code.encode())
     assert old_code.encode() == filename.read_bytes()
 
+    print("old code:")
+    print(filename.read_text())
+
     d = dict(frame.f_globals)
     l = dict(frame.f_locals)
 
     first_output = io.StringIO()
-    with redirect_stdout(first_output):
-        with (
-            pytest.warns(None)
-            if warning is None
-            else pytest.warns(DeprecationWarning, match=re.escape(warning))
-        ):
+    with (
+        pytest.warns(None)
+        if warning is None
+        else pytest.warns(DeprecationWarning, match=re.escape(warning))
+    ):
+        with redirect_stdout(first_output):
             code = compile(filename.read_bytes(), str(filename), "exec")
             d["__file__"] = str(filename)
             exec(code, d, l)
+        print(first_output.getvalue())
+
+        if isinstance(output, str):
+            assert first_output.getvalue() == output, (first_output.getvalue(), output)
+        else:
+            assert output.fullmatch(first_output.getvalue()), (
+                first_output.getvalue(),
+                output,
+            )
+
     rewrite(filename)
+
+    print("new code:")
+    print(filename.read_text())
 
     assert (
         filename.read_bytes() == new_code.encode()
     ), f"{filename.read_bytes()} != {new_code.encode()}"
-
-    if isinstance(output, str):
-        assert first_output.getvalue() == output, (first_output.getvalue(), output)
-    else:
-        assert output.fullmatch(first_output.getvalue()), (
-            first_output.getvalue(),
-            output,
-        )
 
 
 def run_second_test(old_code, new_code, *, warning=None, output="", filename, frame):
@@ -47,9 +55,29 @@ def run_second_test(old_code, new_code, *, warning=None, output="", filename, fr
     )
 
 
-@pytest.fixture(params=["{}", "{}\n", "{}\r\n", "{}\r", "\n\n{}# comment\n"])
+doctest_template = '''
+import doctest
+
+def func():
+    """
+    >>> def doctest_helper():
+    ...     {}
+    ...
+    >>> doctest_helper()
+    {output}
+
+    """
+    pass
+
+doctest.testfile(__file__,globs=locals())
+'''
+
+
+@pytest.fixture(
+    params=["{}", "{}\n", "{}\r\n", "{}\r", "\n\n{}# comment\n", doctest_template]
+)
 def code_formatting(request):
-    return request.param.format
+    return request.param
 
 
 @pytest.fixture(params=[run_test, run_second_test])
@@ -59,8 +87,12 @@ def test_rewrite(request, tmp_path, code_formatting):
     def test(old_code, new_code, *, warning=None, output=""):
         nonlocal idx
 
-        old_code = code_formatting(old_code)
-        new_code = code_formatting(new_code)
+        old_code = code_formatting.format(old_code, output=output)
+        new_code = code_formatting.format(new_code, output=output)
+
+        if "{output}" in code_formatting:
+            # output check in source (doctest)
+            output = ""
 
         frame = inspect.currentframe().f_back
         filename = tmp_path / f"{request.param.__name__}_{idx}.py"

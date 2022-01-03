@@ -198,6 +198,7 @@ def code_stream(source):
 
 
 def rewrite(filename=None):
+
     if filename is None:
         for file in ChangeRecorder.current._source_files.values:
             file.rewrite()

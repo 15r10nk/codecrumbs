@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from itertools import zip_longest
 from types import CodeType
 
-if False:
+if True:
     debug_log = (pathlib.Path(__file__).parent / "debug.log").open("w")
 
     def debug(*args):
@@ -63,11 +63,37 @@ import tokenize
 
 
 @dataclass
+class code_offset:
+    line_offset: int
+    col_offset: int
+
+
+@dataclass
+class Token:
+    filename: str
+    lineno: int
+    end_lineno: int
+    col_offset: int
+    end_col_offset: int
+    type: object
+    string: str
+
+    @property
+    def start(self):
+        return (self.lineno, self.col_offset)
+
+    @property
+    def end(self):
+        return (self.end_lineno, self.end_col_offset)
+
+
+@dataclass
 class lookup_result:
     filename: pathlib.Path
     _orig_ast: ast.AST
     ast_index: int
     code: str
+    _offset: code_offset
 
     @cached_property
     def ast(self):
@@ -76,7 +102,18 @@ class lookup_result:
     @cached_property
     def tokens(self):
         file = io.StringIO(self.code)
-        return list(tokenize.generate_tokens(file.readline))
+        return [
+            Token(
+                filename=self.filename,
+                type=t.type,
+                string=t.string,
+                lineno=t.start[0] + self._offset.line_offset,
+                end_lineno=t.end[0] + self._offset.line_offset,
+                col_offset=t.start[1] + self._offset.col_offset,
+                end_col_offset=t.end[1] + self._offset.col_offset,
+            )
+            for t in tokenize.generate_tokens(file.readline)
+        ]
 
     @cached_property
     def expr(self):
@@ -134,6 +171,9 @@ def nodes_map(source_file, code, rewrite_hook):
     return nodes, bc_map
 
 
+import doctest
+
+
 def calling_expression(back=1):
     frame = inspect.currentframe().f_back
 
@@ -143,9 +183,49 @@ def calling_expression(back=1):
     source_file = inspect.getfile(frame)
     code = "".join(inspect.findsource(frame)[0])
 
+    def move_ast(node):
+        pass
+
+    import re
+
+    __LINECACHE_FILENAME_RE = re.compile(
+        r"<doctest " r"(?P<name>.+)" r"\[(?P<examplenum>\d+)\]>$"
+    )
+
+    m = __LINECACHE_FILENAME_RE.fullmatch(source_file)
+
+    line_offset = 0
+    col_offset = 0
+
+    if m is not None:
+        doctest_frame = frame
+        while not doctest_frame.f_code.co_filename.endswith("doctest.py"):
+            doctest_frame = doctest_frame.f_back
+
+        doctest_self = doctest_frame.f_locals["self"]
+
+        assert isinstance(doctest_self, doctest.DocTestRunner)
+
+        if m and m.group("name") == doctest_self.test.name:
+            example = doctest_self.test.examples[int(m.group("examplenum"))]
+
+        if doctest_self.test.filename is not None:
+            line_offset = doctest_self.test.lineno + example.lineno
+            col_offset = example.indent + 4  # 4 for prompt
+            source_file = doctest_self.test.filename
+
+        def move_ast(module):
+            for node in ast.walk(module):
+                if isinstance(node, (ast.expr, ast.stmt)):
+                    node.lineno += line_offset
+                    node.end_lineno += line_offset
+                    node.col_offset += col_offset
+                    node.end_col_offset += col_offset
+
     for rewrite_hook in _rewrite_hooks:
 
         nodes, bc_map = nodes_map(source_file, code, rewrite_hook)
+        move_ast(nodes)
 
         node_index = bc_map.get(bc_key(frame.f_code), None)
         if node_index is not None:
@@ -161,6 +241,7 @@ def calling_expression(back=1):
         _orig_ast=nodes,
         ast_index=ast_index,
         code=code,
+        _offset=code_offset(line_offset, col_offset),
     )
 
 
