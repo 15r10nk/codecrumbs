@@ -9,10 +9,10 @@ from .helper import never_called
 def test_preserve_signature():
     class Test:
         @argument_renamed(old="new")
-        def a(new: str) -> int:
+        def a(self, new: str) -> None:
             never_called()
 
-        def b(new: str, *, old: str) -> int:
+        def b(self, new: str, *, old: str) -> None:
             never_called()
 
     assert inspect.signature(Test.a) == inspect.signature(Test.b)

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import ast
 import contextlib
 import pathlib
@@ -6,22 +8,19 @@ from dataclasses import dataclass
 
 try:
     from itertools import pairwise
-except:
+except ImportError:
     from itertools import tee
 
-    def pairwise(iterable):
+    def pairwise(iterable):  # type: ignore
         a, b = tee(iterable)
         next(b, None)
         return zip(a, b)
 
 
-from typing import Tuple
-
-
 @dataclass(order=True)
 class Replacement:
-    start: Tuple[int, int]
-    end: Tuple[int, int]
+    start: tuple[int, int]
+    end: tuple[int, int]
     text: str
     change_id: int = 0
 
@@ -140,7 +139,7 @@ def insert_before(node, new_contend):
 
 
 class ChangeRecorder:
-    current = None
+    current: ChangeRecorder | None = None
 
     def __init__(self):
 

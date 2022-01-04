@@ -169,7 +169,7 @@ def calling_expression(back=1):
     source_file = inspect.getfile(frame)
     code = "".join(inspect.findsource(frame)[0])
 
-    def move_ast(node):
+    def move_ast(module):
         pass
 
     import re
