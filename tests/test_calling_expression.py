@@ -1,24 +1,23 @@
 import ast
 
 import pytest
-
 from breadcrumes._calling_expression import AstStructureError
 from breadcrumes._calling_expression import calling_expression
 
 
 def test_lambda_problem():
-    [lambda: 1, lambda: 1]
+    [lambda: never_called(), lambda: never_called()]
 
     def foo():
         expr = calling_expression().expr
-        assert expr.func.id == "foo"  # pragma: no cover
+        # assert expr.func.id == "foo"
 
     with pytest.raises(AstStructureError):
         foo()
 
 
 def test_lambda_in_parent_function():
-    [lambda: 1, lambda: 1]
+    [lambda: never_called(), lambda: never_called()]
 
     def w():
         def foo():

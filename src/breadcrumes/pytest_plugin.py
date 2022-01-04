@@ -1,5 +1,4 @@
 import pytest
-
 from breadcrumes._rewrite_code import ChangeRecorder
 
 

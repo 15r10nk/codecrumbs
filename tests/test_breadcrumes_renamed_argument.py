@@ -1,18 +1,19 @@
 import inspect
 
 import pytest
-
 from breadcrumes import argument_renamed
+
+from .helper import never_called
 
 
 def test_preserve_signature():
     class Test:
         @argument_renamed(old="new")
         def a(new: str) -> int:
-            return 0
+            never_called()
 
         def b(new: str, *, old: str) -> int:
-            return 0
+            never_called()
 
     assert inspect.signature(Test.a) == inspect.signature(Test.b)
 
@@ -73,7 +74,7 @@ def test_parameter_renamed_misuse():
 
         @argument_renamed(old="new")
         def function(old=2, new=1):
-            pass  # pragma: no cover
+            never_called()
 
     with pytest.raises(
         TypeError, match="parmeter 'old' should be renamed to 'new' in the signature"
@@ -81,4 +82,4 @@ def test_parameter_renamed_misuse():
 
         @argument_renamed(old="new")
         def function(old=2):
-            pass  # pragma: no cover
+            never_called()

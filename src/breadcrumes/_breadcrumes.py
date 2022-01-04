@@ -40,9 +40,6 @@ class FixIndex:
         self.index.add(fix_id)
         return first
 
-    def clear(self):
-        self.index = set()
-
 
 class renamed:
     """

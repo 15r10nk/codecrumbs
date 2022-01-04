@@ -4,7 +4,6 @@ import re
 from contextlib import redirect_stdout
 
 import pytest
-
 from breadcrumes._rewrite_code import rewrite
 
 
@@ -31,13 +30,7 @@ def run_test(old_code, new_code, *, warning=None, output="", filename, frame):
             exec(code, d, l)
         print(first_output.getvalue())
 
-        if isinstance(output, str):
-            assert first_output.getvalue() == output, (first_output.getvalue(), output)
-        else:
-            assert output.fullmatch(first_output.getvalue()), (
-                first_output.getvalue(),
-                output,
-            )
+        assert first_output.getvalue() == output, (first_output.getvalue(), output)
 
     rewrite(filename)
 
@@ -69,7 +62,7 @@ def func():
     """
     pass
 
-doctest.testfile(__file__,globs=locals())
+doctest.testfile(__file__,module_relative=False,globs=locals())
 '''
 
 
@@ -87,8 +80,24 @@ def test_rewrite(request, tmp_path, code_formatting):
     def test(old_code, new_code, *, warning=None, output=""):
         nonlocal idx
 
-        old_code = code_formatting.format(old_code, output=output)
-        new_code = code_formatting.format(new_code, output=output)
+        def indent_of(pattern):
+
+            code_idx = code_formatting.find(pattern)
+            code_begin = code_formatting.rfind("\n", 0, code_idx)
+            return code_formatting[code_begin:code_idx].replace(">>>", "...")
+
+        code_prefix = indent_of("{}")
+
+        if "{output}" in code_formatting:
+            output_prefix = indent_of("{output}")
+            output = output.replace("\n", output_prefix)
+
+        old_code = code_formatting.format(
+            old_code.replace("\n", code_prefix), output=output
+        )
+        new_code = code_formatting.format(
+            new_code.replace("\n", code_prefix), output=output
+        )
 
         if "{output}" in code_formatting:
             # output check in source (doctest)

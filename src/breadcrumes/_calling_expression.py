@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from itertools import zip_longest
 from types import CodeType
 
-if True:
+if False:
     debug_log = (pathlib.Path(__file__).parent / "debug.log").open("w")
 
     def debug(*args):
@@ -43,20 +43,7 @@ else:
 
     _rewrite_hooks["pytest_assert"] = pytest_rewrite
 
-try:
-    from functools import cached_property
-except:
-    cached_property = property
-    if False:
-
-        class cached_property:
-            def __init__(self, f):
-                self.f = f
-
-            def __get__(self, obj, typ=None):
-                value = self.f(obj)
-                setattr(self, self.f.__name__, value)
-                return value
+from functools import cached_property
 
 
 import tokenize
@@ -119,8 +106,6 @@ class lookup_result:
     def expr(self):
         for node in ast.walk(self._orig_ast):
             if node.ast_index == self.ast_index:
-                if isinstance(node, ast.Expr):
-                    node = node.value
                 return copy.deepcopy(node)
 
     def dump(self):

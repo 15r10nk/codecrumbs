@@ -1,9 +1,8 @@
-import re
-
 import pytest
-
 from breadcrumes import argument_renamed
 from breadcrumes import renamed
+
+from .helper import never_called
 
 
 def replace_warning(old, new):
@@ -18,7 +17,7 @@ def test_preserve_signature():
         a = renamed("b")
 
         def b(a, b):
-            pass
+            never_called()
 
     with pytest.warns(DeprecationWarning):
         assert inspect.signature(Test.a) == inspect.signature(Test.b)
@@ -208,7 +207,7 @@ def test_rename_replacements(test_rewrite, obj):
         f"print({obj}.old_method)",
         f"print({obj}.new_method)",
         warning=replace_warning("old_method", "new_method"),
-        output=re.compile("<bound method .*", re.DOTALL),
+        output=repr(m.new_method) + "\n",
     )
 
     test_rewrite(
@@ -297,7 +296,7 @@ def test_parameter_renamed_misuse():
 
         @argument_renamed(old="new")
         def function(old=2, new=1):
-            pass  # pragma: no cover
+            never_called()
 
     with pytest.raises(
         TypeError, match="parmeter 'old' should be renamed to 'new' in the signature"
@@ -305,4 +304,4 @@ def test_parameter_renamed_misuse():
 
         @argument_renamed(old="new")
         def function(old=2):
-            pass  # pragma: no cover
+            never_called()
