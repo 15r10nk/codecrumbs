@@ -11,7 +11,7 @@ from itertools import zip_longest
 from types import CodeType
 
 if False:
-    debug_log = (pathlib.Path(__file__).parent / "debug.log").open("w")
+    debug_log = open("/tmp/debug.log", "w")
 
     def debug(*args):
         print(*args, file=debug_log)
@@ -109,7 +109,7 @@ class lookup_result:
                 return copy.deepcopy(node)
 
     def dump(self):
-        print(ast.dump(self.expr))
+        print(ast.dump(self.expr, include_attributes=True))
 
 
 def code_to_node_index(code):
@@ -146,8 +146,9 @@ def bc_key(code):
 
 
 @functools.lru_cache(maxsize=None)
-def nodes_map(source_file, code, rewrite_hook):
+def nodes_map(source_file, code, rewrite_hook, move_ast):
     nodes, it = _iter_bc_mapping(source_file, code, rewrite_hook)
+    move_ast(nodes)
 
     for node in ast.walk(nodes):
         node.filename = source_file
@@ -209,8 +210,7 @@ def calling_expression(back=1):
 
     for rewrite_hook in _rewrite_hooks:
 
-        nodes, bc_map = nodes_map(source_file, code, rewrite_hook)
-        move_ast(nodes)
+        nodes, bc_map = nodes_map(source_file, code, rewrite_hook, move_ast)
 
         node_index = bc_map.get(bc_key(frame.f_code), None)
         if node_index is not None:

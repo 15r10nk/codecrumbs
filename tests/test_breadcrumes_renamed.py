@@ -217,12 +217,12 @@ def test_rename_replacements(test_rewrite, obj):
     )
     test_rewrite(
         f"{obj}.  old_method",
-        f"{obj}.new_method",
+        f"{obj}.  new_method",
         warning=replace_warning("old_method", "new_method"),
     )
     test_rewrite(
         f"{obj}  .old_method",
-        f"{obj}.new_method",
+        f"{obj}  .new_method",
         warning=replace_warning("old_method", "new_method"),
     )
 

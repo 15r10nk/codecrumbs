@@ -1,5 +1,6 @@
 import ast
 import inspect
+import token
 import warnings
 
 from ._calling_expression import calling_expression
@@ -143,7 +144,18 @@ class renamed:
                     DeprecationWarning,
                     stacklevel=3,
                 )
-                replace(Range(end_of(e.value), end_of(e)), "." + self.new_name)
+
+                start = e.value.end_lineno, e.value.end_col_offset
+
+                tokens = expr.tokens
+                mytokens = [t for t in tokens if t.start >= start]
+
+                dot, name = mytokens[:2]
+
+                assert dot.string == "."
+                assert name.string == self.current_name
+
+                replace(name, self.new_name)
 
     def __get__(self, obj, objtype=None):
         if obj is None:
@@ -231,7 +243,6 @@ def argument_renamed(since_version=None, **old_params):
 
             if changed:
                 expr = calling_expression()
-                import token
 
                 tokens = expr.tokens
 
