@@ -158,6 +158,7 @@ def nodes_map(source_file, code, rewrite_hook, move_ast):
 
 
 import doctest
+import sys
 
 
 def calling_expression(back=1):
@@ -169,6 +170,9 @@ def calling_expression(back=1):
     source_file = inspect.getfile(frame)
     code = "".join(inspect.findsource(frame)[0])
 
+    line_offset = 0
+    col_offset = 0
+
     def move_ast(module):
         pass
 
@@ -179,9 +183,6 @@ def calling_expression(back=1):
     )
 
     m = __LINECACHE_FILENAME_RE.fullmatch(source_file)
-
-    line_offset = 0
-    col_offset = 0
 
     if m is not None:
         doctest_frame = frame
@@ -207,6 +208,40 @@ def calling_expression(back=1):
                     node.end_lineno += line_offset
                     node.col_offset += col_offset
                     node.end_col_offset += col_offset
+
+    if sys.version_info >= (3, 11):
+        nodes = ast.parse(code)
+        positions = list(frame.f_code.co_positions())
+        code_index = frame.f_lasti // 2
+
+        code_position = positions[code_index]
+
+        ast_index = None
+        for i, code_node in enumerate(ast.walk(nodes)):
+            code_node.ast_index = i
+            code_node.filename = source_file
+            if (
+                isinstance(code_node, (ast.expr, ast.stmt))
+                and (
+                    code_node.lineno,
+                    code_node.end_lineno,
+                    code_node.col_offset,
+                    code_node.end_col_offset,
+                )
+                == code_position
+            ):
+                ast_index = i
+
+        assert ast_index is not None
+        move_ast(nodes)
+
+        return lookup_result(
+            filename=pathlib.Path(source_file),
+            _orig_ast=nodes,
+            ast_index=ast_index,
+            code=code,
+            _offset=code_offset(line_offset, col_offset),
+        )
 
     for rewrite_hook in _rewrite_hooks:
 

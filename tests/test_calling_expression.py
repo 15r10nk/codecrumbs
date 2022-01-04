@@ -1,10 +1,16 @@
 import ast
+import sys
 
 import pytest
 from breadcrumes._calling_expression import AstStructureError
 from breadcrumes._calling_expression import calling_expression
 
 
+@pytest.mark.xfail(
+    sys.version_info[:2] < (3, 11),
+    raises=AstStructureError,
+    reason="we can not get the functions if we have two expressions which compile down to the same code object",
+)
 def test_lambda_problem():
     [lambda: never_called(), lambda: never_called()]
 
@@ -12,8 +18,7 @@ def test_lambda_problem():
         expr = calling_expression().expr
         # assert expr.func.id == "foo"
 
-    with pytest.raises(AstStructureError):
-        foo()
+    foo()
 
 
 def test_lambda_in_parent_function():
