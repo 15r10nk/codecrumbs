@@ -6,11 +6,13 @@
 Welcome to breadcrumes documentation!
 ===============================================================
 
-Contents:
 
 .. toctree::
    :maxdepth: 2
+   :caption: Contents:
 
+   introduction
+   idea
    examples
    reference
 

@@ -209,7 +209,7 @@ def calling_expression(back=1):
                     node.col_offset += col_offset
                     node.end_col_offset += col_offset
 
-    if sys.version_info >= (3, 11):
+    if sys.version_info >= (3, 11):  # pragma: nocov
         nodes = ast.parse(code)
         positions = list(frame.f_code.co_positions())
         code_index = frame.f_lasti // 2
@@ -269,7 +269,6 @@ def _iter_bc_mapping(source_file, code, rewrite_hook=""):
     code_ast = ast.parse(code)
     _rewrite_hooks[rewrite_hook](code_ast, code)
     nodeindex_ast = copy.deepcopy(code_ast)
-    nodes = []
 
     for i, (parent_node, index_node) in enumerate(walk_parent_child(nodeindex_ast)):
         index_node.lineno = i
@@ -286,7 +285,6 @@ def _iter_bc_mapping(source_file, code, rewrite_hook=""):
 
     for i, code_node in enumerate(ast.walk(code_ast)):
         code_node.ast_index = i
-        nodes.append(code_node)
 
     return (
         code_ast,
