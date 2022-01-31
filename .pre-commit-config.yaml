@@ -29,7 +29,7 @@ repos:
           - id: setup-cfg-fmt
 
     - repo: https://github.com/asottile/reorder_python_imports
-      rev: v2.6.0
+      rev: v2.7.1
       hooks:
           - args:
                 - --py38-plus
@@ -39,17 +39,17 @@ repos:
                 - --py38-plus
             id: pyupgrade
       repo: https://github.com/asottile/pyupgrade
-      rev: v2.30.0
+      rev: v2.31.0
     - hooks:
           - id: black
       repo: https://github.com/psf/black
-      rev: 21.12b0
+      rev: 22.1.0
     - hooks:
           - additional_dependencies:
                 - black==20.8b1
             id: blacken-docs
       repo: https://github.com/asottile/blacken-docs
-      rev: v1.12.0
+      rev: v1.12.1
     - hooks:
           - id: yamlfmt
       repo: https://github.com/jumanjihouse/pre-commit-hook-yamlfmt
@@ -63,4 +63,4 @@ repos:
             stages:
                 - commit-msg
       repo: https://github.com/commitizen-tools/commitizen
-      rev: v2.20.3
+      rev: v2.20.4
