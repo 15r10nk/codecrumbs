@@ -3,9 +3,9 @@ import io
 from contextlib import redirect_stdout
 
 import pytest
-from breadcrumes._calling_expression import calling_expression
-from breadcrumes._rewrite_code import replace
-from breadcrumes._rewrite_code import rewrite
+from breadcrumbs._calling_expression import calling_expression
+from breadcrumbs._rewrite_code import replace
+from breadcrumbs._rewrite_code import rewrite
 
 
 @pytest.fixture

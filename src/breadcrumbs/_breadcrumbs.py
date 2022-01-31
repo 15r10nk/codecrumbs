@@ -52,7 +52,7 @@ class renamed:
     ...     new_attribute = 5
     ...
     >>> Test.old_attribute
-    file.py:1: DeprecationWarning: ".old_attribute" should be replaced with ".new_attribute" (fixable with breadcrumes)
+    file.py:1: DeprecationWarning: ".old_attribute" should be replaced with ".new_attribute" (fixable with breadcrumbs)
     5
 
     An access to the old attribute results in a deprecation warning and the calling code is memorized for refacting.
@@ -67,7 +67,7 @@ class renamed:
     ...
     >>> t = Test()
     >>> t.old_method()
-    file.py:1: DeprecationWarning: ".old_method" should be replaced with ".new_method" (fixable with breadcrumes)
+    file.py:1: DeprecationWarning: ".old_method" should be replaced with ".new_method" (fixable with breadcrumbs)
     5
 
     And also to rename instance attributes:
@@ -81,10 +81,10 @@ class renamed:
     ...         self.data_y = y
     ...
     >>> p = Point(1, 2)
-    file.py:6: DeprecationWarning: ".data_x" should be replaced with ".x" (fixable with breadcrumes)
-    file.py:7: DeprecationWarning: ".data_y" should be replaced with ".y" (fixable with breadcrumes)
+    file.py:6: DeprecationWarning: ".data_x" should be replaced with ".x" (fixable with breadcrumbs)
+    file.py:7: DeprecationWarning: ".data_y" should be replaced with ".y" (fixable with breadcrumbs)
     >>> p.data_x
-    file.py:1: DeprecationWarning: ".data_x" should be replaced with ".x" (fixable with breadcrumes)
+    file.py:1: DeprecationWarning: ".data_x" should be replaced with ".x" (fixable with breadcrumbs)
     1
 
     It renames also has/get/set/delattr() calls if the argument is a Constant
@@ -94,7 +94,7 @@ class renamed:
     ...
     >>> t = Test()
     >>> assert not hasattr(t, "old_attribute")
-    file.py:1: DeprecationWarning: hasattr(...,"old_attribute") should be replaced with hasattr(...,"new_attribute") (fixable with breadcrumes)
+    file.py:1: DeprecationWarning: hasattr(...,"old_attribute") should be replaced with hasattr(...,"new_attribute") (fixable with breadcrumbs)
 
     """
 
@@ -124,7 +124,7 @@ class renamed:
                 if isinstance(namearg, ast.Constant):
                     # getattr(obj,"attr")
                     warnings.warn(
-                        f'{e.id}(...,"{self.current_name}") should be replaced with {e.id}(...,"{self.new_name}") (fixable with breadcrumes)',
+                        f'{e.id}(...,"{self.current_name}") should be replaced with {e.id}(...,"{self.new_name}") (fixable with breadcrumbs)',
                         DeprecationWarning,
                         stacklevel=3,
                     )
@@ -140,7 +140,7 @@ class renamed:
                 assert isinstance(e, ast.Attribute), e
                 # obj.attr
                 warnings.warn(
-                    f'".{self.current_name}" should be replaced with ".{self.new_name}" (fixable with breadcrumes)',
+                    f'".{self.current_name}" should be replaced with ".{self.new_name}" (fixable with breadcrumbs)',
                     DeprecationWarning,
                     stacklevel=3,
                 )
@@ -194,7 +194,7 @@ def argument_renamed(since_version=None, **old_params):
     ... def function(new_name):
     ...     print(new_name)
     >>> function(old_name=5)
-    file.py:1: DeprecationWarning: argument name "old_name=" should be replaced with "new_name=" (fixable with breadcrumes)
+    file.py:1: DeprecationWarning: argument name "old_name=" should be replaced with "new_name=" (fixable with breadcrumbs)
     5
 
     :raises TypeError: if the old named argument is still present in the signature
@@ -231,7 +231,7 @@ def argument_renamed(since_version=None, **old_params):
                         )
 
                     warnings.warn(
-                        f'argument name "{old_arg}=" should be replaced with "{new_arg}=" (fixable with breadcrumes)',
+                        f'argument name "{old_arg}=" should be replaced with "{new_arg}=" (fixable with breadcrumbs)',
                         DeprecationWarning,
                         stacklevel=2,
                     )
@@ -291,7 +291,7 @@ def inline_source(since_version=None):
     def w(f):
         def r(*a, **ka):
             warnings.warn(
-                f"usage of this function is deprecated and should be replaced with the defined implementation (can be fixed with breadcrumes)",
+                f"usage of this function is deprecated and should be replaced with the defined implementation (can be fixed with breadcrumbs)",
                 DeprecationWarning,
                 stacklevel=2,
             )

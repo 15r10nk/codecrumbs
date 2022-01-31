@@ -1,9 +1,9 @@
-.. pytest-breadcrumes documentation master file, created by
+.. pytest-breadcrumbs documentation master file, created by
    sphinx-quickstart on Thu Oct  1 00:43:18 2015.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to breadcrumes documentation!
+Welcome to breadcrumbs documentation!
 ===============================================================
 
 

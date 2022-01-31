@@ -2,7 +2,7 @@ General Idea
 ============
 
 
-The general idea behind breadcrumes is that you annotate your API changes in your code base.
+The general idea behind breadcrumbs is that you annotate your API changes in your code base.
 This allows tooling to follow your annotations and fix the code which is using your API.
 
 
@@ -23,7 +23,7 @@ You can do this by changing the name and add an annotation which redirects the c
 .. testcode::
 
     class Example:
-        old = breadcrumes.renamed("new")
+        old = breadcrumbs.renamed("new")
 
         def new(self):
             print("method called")

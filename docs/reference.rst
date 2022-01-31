@@ -5,13 +5,13 @@ References
 Rename attributes
 -----------------
 
-.. automodule:: breadcrumes
+.. automodule:: breadcrumbs
     :noindex:
     :members: renamed
 
 Rename function arguments
 -------------------------------
 
-.. automodule:: breadcrumes
+.. automodule:: breadcrumbs
     :noindex:
     :members:  argument_renamed

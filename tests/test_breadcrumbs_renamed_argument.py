@@ -1,7 +1,7 @@
 import inspect
 
 import pytest
-from breadcrumes import argument_renamed
+from breadcrumbs import argument_renamed
 
 from .helper import never_called
 

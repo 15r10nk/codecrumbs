@@ -1,12 +1,12 @@
 import pytest
-from breadcrumes import argument_renamed
-from breadcrumes import renamed
+from breadcrumbs import argument_renamed
+from breadcrumbs import renamed
 
 from .helper import never_called
 
 
 def replace_warning(old, new):
-    return f'".{old}" should be replaced with ".{new}" (fixable with breadcrumes)'
+    return f'".{old}" should be replaced with ".{new}" (fixable with breadcrumbs)'
 
 
 import inspect
@@ -62,32 +62,32 @@ def test_renamed_hasattr_getattr(test_rewrite):
     test_rewrite(
         'assert getattr(e,"old") == 1',
         'assert getattr(e,"new") == 1',
-        warning='getattr(...,"old") should be replaced with getattr(...,"new") (fixable with breadcrumes)',
+        warning='getattr(...,"old") should be replaced with getattr(...,"new") (fixable with breadcrumbs)',
     )
 
     test_rewrite(
         'assert hasattr(e,"old")',
         'assert hasattr(e,"new")',
-        warning='hasattr(...,"old") should be replaced with hasattr(...,"new") (fixable with breadcrumes)',
+        warning='hasattr(...,"old") should be replaced with hasattr(...,"new") (fixable with breadcrumbs)',
     )
 
     test_rewrite(
         'assert not hasattr(e,"no_attr")',
         'assert not hasattr(e,"new_no_attr")',
-        warning='hasattr(...,"no_attr") should be replaced with hasattr(...,"new_no_attr") (fixable with breadcrumes)',
+        warning='hasattr(...,"no_attr") should be replaced with hasattr(...,"new_no_attr") (fixable with breadcrumbs)',
     )
 
     test_rewrite(
         'setattr(e,"old",3)',
         'setattr(e,"new",3)',
-        warning='setattr(...,"old") should be replaced with setattr(...,"new") (fixable with breadcrumes)',
+        warning='setattr(...,"old") should be replaced with setattr(...,"new") (fixable with breadcrumbs)',
     )
     assert e.new == 3
 
     test_rewrite(
         'delattr(e,"old")',
         'delattr(e,"new")',
-        warning='delattr(...,"old") should be replaced with delattr(...,"new") (fixable with breadcrumes)',
+        warning='delattr(...,"old") should be replaced with delattr(...,"new") (fixable with breadcrumbs)',
     )
 
     assert not hasattr(e, "new")
@@ -164,7 +164,7 @@ def test_parameter_renamed_method(test_rewrite):
     test_rewrite(
         "e.method(old=5)",
         "e.method(new=5)",
-        warning='argument name "old=" should be replaced with "new=" (fixable with breadcrumes)',
+        warning='argument name "old=" should be replaced with "new=" (fixable with breadcrumbs)',
         output="5\n",
     )
 

@@ -1,5 +1,5 @@
 #
-# pytest-breadcrumes documentation build configuration file, created by
+# pytest-breadcrumbs documentation build configuration file, created by
 # sphinx-quickstart on Thu Oct  1 00:43:18 2015.
 #
 # This file is execfile()d with the current directory set to its
@@ -47,7 +47,7 @@ source_suffix = ".rst"
 master_doc = "index"
 
 # General information about the project.
-project = "breadcrumes"
+project = "breadcrumbs"
 copyright = "2015, Frank Hoffmann"
 author = "Frank Hoffmann"
 
@@ -258,7 +258,7 @@ man_pages = [
     (
         master_doc,
         "pytest-cookiecutterplugin_name",
-        "pytest-breadcrumes Documentation",
+        "pytest-breadcrumbs Documentation",
         [author],
         1,
     )
@@ -277,7 +277,7 @@ texinfo_documents = [
     (
         master_doc,
         "pytest-cookiecutterplugin_name",
-        "pytest-breadcrumes Documentation",
+        "pytest-breadcrumbs Documentation",
         author,
         "pytest-cookiecutterplugin_name",
         "One line description of project.",
