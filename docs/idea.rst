@@ -23,7 +23,7 @@ You can do this by changing the name and add an annotation which redirects the c
 .. testcode::
 
     class Example:
-        old = breadcrumbs.renamed("new")
+        old = breadcrumbs.renamed_attribute("new")
 
         def new(self):
             print("method called")

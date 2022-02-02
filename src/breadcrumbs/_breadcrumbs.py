@@ -42,13 +42,13 @@ class FixIndex:
         return first
 
 
-class renamed:
+class renamed_attribute:
     """
     specifies that all read and write accesses of an attribute should be renamed
     usage:
 
     >>> class Test:
-    ...     old_attribute = renamed("new_attribute")
+    ...     old_attribute = renamed_attribute("new_attribute")
     ...     new_attribute = 5
     ...
     >>> Test.old_attribute
@@ -60,7 +60,7 @@ class renamed:
     It can also be used to rename methods:
 
     >>> class Test:
-    ...     old_method = renamed("new_method")
+    ...     old_method = renamed_attribute("new_method")
     ...
     ...     def new_method(self):
     ...         return 5
@@ -73,8 +73,8 @@ class renamed:
     And also to rename instance attributes:
 
     >>> class Point:
-    ...     data_x = renamed("x")
-    ...     data_y = renamed("y")
+    ...     data_x = renamed_attribute("x")
+    ...     data_y = renamed_attribute("y")
     ...
     ...     def __init__(self, x, y):
     ...         self.data_x = x
@@ -90,7 +90,7 @@ class renamed:
     It renames also has/get/set/delattr() calls if the argument is a Constant
 
     >>> class Test:
-    ...     old_attribute = renamed("new_attribute")
+    ...     old_attribute = renamed_attribute("new_attribute")
     ...
     >>> t = Test()
     >>> assert not hasattr(t, "old_attribute")

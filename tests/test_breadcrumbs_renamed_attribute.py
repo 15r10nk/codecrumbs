@@ -1,6 +1,6 @@
 import pytest
 from breadcrumbs import argument_renamed
-from breadcrumbs import renamed
+from breadcrumbs import renamed_attribute
 
 from .helper import never_called
 
@@ -14,7 +14,7 @@ import inspect
 
 def test_preserve_signature():
     class Test:
-        a = renamed("b")
+        a = renamed_attribute("b")
 
         def b(a, b):
             never_called()
@@ -25,7 +25,7 @@ def test_preserve_signature():
 
 def test_renamed_attribute(test_rewrite):
     class Example:
-        old = renamed("new")
+        old = renamed_attribute("new")
 
         def __init__(self):
             self.new = 1
@@ -51,8 +51,8 @@ def test_renamed_attribute(test_rewrite):
 
 def test_renamed_hasattr_getattr(test_rewrite):
     class Example:
-        old = renamed("new")
-        no_attr = renamed("new_no_attr")
+        old = renamed_attribute("new")
+        no_attr = renamed_attribute("new_no_attr")
 
         def __init__(self):
             self.new = 1
@@ -117,7 +117,7 @@ def test_renamed_hasattr_getattr(test_rewrite):
 
 def test_renamed_method(test_rewrite):
     class Example:
-        old = renamed("new")
+        old = renamed_attribute("new")
 
         def new(self):
             return 1
@@ -132,7 +132,7 @@ def test_renamed_method(test_rewrite):
 
 def test_renamed_classmethod(test_rewrite):
     class Example:
-        old = renamed("new")
+        old = renamed_attribute("new")
 
         @classmethod
         def new(cls):
@@ -180,8 +180,8 @@ def test_parameter_renamed_method(test_rewrite):
 @pytest.mark.parametrize("obj", ["m", "ma[0]", "f()"])
 def test_rename_replacements(test_rewrite, obj):
     class Method:
-        old_method = renamed("new_method")
-        old_attr = renamed("new_attr")
+        old_method = renamed_attribute("new_method")
+        old_attr = renamed_attribute("new_attr")
 
         def new_method(self):
             print("new")

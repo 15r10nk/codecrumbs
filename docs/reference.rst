@@ -7,7 +7,7 @@ Rename attributes
 
 .. automodule:: breadcrumbs
     :noindex:
-    :members: renamed
+    :members: renamed_attribute
 
 Rename function arguments
 -------------------------------

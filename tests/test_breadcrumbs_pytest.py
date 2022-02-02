@@ -17,10 +17,10 @@ def test_breadcrumbs_fix(pytester):
 
     file.write_text(
         """
-from breadcrumbs import renamed
+from breadcrumbs import renamed_attribute
 
 class A:
-    a=renamed("b")
+    a=renamed_attribute("b")
 
 
 def test_one(record_changes):
