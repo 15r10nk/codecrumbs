@@ -14,22 +14,22 @@ However it is not 100% save and the refactorings may break your code (see `known
 
 
 .. note::
-   breadcrumbs is currently limited to refactor attribute names and function argument names,
+   codecrumbs is currently limited to refactor attribute names and function argument names,
    but more options are planned.
 
 Requirements
 ------------
 
-breadcrumbs requires Python 3.8 and above.
+codecrumbs requires Python 3.8 and above.
 
 It has no (and will never have) dependencies to other libraries, to allow it to be used by any library without cyclic dependencies.
 
 Installation
 ------------
 
-Install or add breadcrumbs as a dependency to your library::
+Install or add codecrumbs as a dependency to your library::
 
-   pip install breadcrumbs
+   pip install codecrumbs
 
 This includes the pytest plugin which allows the user of your library to
 fix the deprecated API calls without to install additional libraries.
@@ -42,12 +42,12 @@ Annotate your refactorings first
 
 .. code::
 
-    import breadcrumbs
+    import codecrumbs
 
 
     class Example:
         # cfgmod was renamed to config_module
-        cfgmod = breadcrumbs.renamed_attribute("config_module")
+        cfgmod = codecrumbs.renamed_attribute("config_module")
 
         def config_module(self, some_arg):
             print("some code", some_arg)
@@ -56,10 +56,10 @@ Calling `cfgmod` now triggers an `DeprecationWarning` and redirects to `config_m
 
 The code can be fixed by with::
 
-    pytest --breadcrumbs-fix test_of_your_code.py
+    pytest --codecrumbs-fix test_of_your_code.py
 
 if you have tests for your code which calling the deprecated API or::
 
-    breadcrumbs run your_script.py
+    codecrumbs run your_script.py
 
 if you have a small script without tests.

@@ -4,9 +4,9 @@ import warnings
 from contextlib import redirect_stdout
 
 import pytest
-from breadcrumbs._calling_expression import calling_expression
-from breadcrumbs._rewrite_code import replace
-from breadcrumbs._rewrite_code import rewrite
+from codecrumbs._calling_expression import calling_expression
+from codecrumbs._rewrite_code import replace
+from codecrumbs._rewrite_code import rewrite
 
 
 @pytest.fixture

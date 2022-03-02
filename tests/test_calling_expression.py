@@ -2,8 +2,8 @@ import ast
 import sys
 
 import pytest
-from breadcrumbs._calling_expression import AstStructureError
-from breadcrumbs._calling_expression import calling_expression
+from codecrumbs._calling_expression import AstStructureError
+from codecrumbs._calling_expression import calling_expression
 
 
 @pytest.mark.xfail(

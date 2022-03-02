@@ -8,7 +8,7 @@ from ._rewrite_code import ChangeRecorder
 
 
 def main():
-    parser = argparse.ArgumentParser(prog="breadcrumbs")
+    parser = argparse.ArgumentParser(prog="codecrumbs")
     subparsers = parser.add_subparsers(dest="subcommand")
     run_parser = subparsers.add_parser("run", help="run a python script")
     run_parser.add_argument("--fix")

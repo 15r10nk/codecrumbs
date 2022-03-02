@@ -4,7 +4,7 @@ import re
 from contextlib import redirect_stdout
 
 import pytest
-from breadcrumbs._rewrite_code import rewrite
+from codecrumbs._rewrite_code import rewrite
 
 
 def run_test(old_code, new_code, *, warning=None, output="", filename, frame):
