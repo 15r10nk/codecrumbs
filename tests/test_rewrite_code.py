@@ -1,5 +1,6 @@
 import inspect
 import io
+import warnings
 from contextlib import redirect_stdout
 
 import pytest
@@ -39,7 +40,9 @@ def rewrite_test(tmp_path):
             ), f"{filename.read_bytes()} != {new_code.encode()}"
 
         internal(old_code + "\n", new_code + "\n")
-        with pytest.warns(None):
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
             if not statement:
                 internal(f"print({old_code})\n", f"print({new_code})\n")
 
