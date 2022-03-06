@@ -2,7 +2,7 @@ import pytest
 from codecrumbs import argument_renamed
 from codecrumbs import renamed_attribute
 
-from .helper import never_called
+from ..helper import never_called
 
 
 def replace_warning(old, new):

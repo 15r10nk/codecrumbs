@@ -3,7 +3,7 @@ import inspect
 import pytest
 from codecrumbs import argument_renamed
 
-from .helper import never_called
+from ..helper import never_called
 
 
 def test_preserve_signature():
