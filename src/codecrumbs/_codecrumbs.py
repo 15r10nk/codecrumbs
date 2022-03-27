@@ -176,7 +176,7 @@ class renamed_attribute:
         delattr(obj, self.new_name)
 
 
-def argument_renamed(since_version=None, **old_params):
+class argument_renamed:
     """
     `argument_renamed` is an decorator which can be used to rename argument names on the calling side of a method or fuction.
 
@@ -201,29 +201,22 @@ def argument_renamed(since_version=None, **old_params):
 
     """
 
-    reverse_old_params = {v: k for k, v in old_params.items()}
+    def __init__(self, **old_params):
+        self.reverse_old_params = {v: k for k, v in old_params.items()}
+        self.old_params = old_params
+        self.since_version = None
 
-    def w(f):
-        # check misuse
-        sig = inspect.signature(f)
-        for old_param, new_param in old_params.items():
-            if old_param in sig.parameters:
-                if new_param in sig.parameters:
-                    raise TypeError(
-                        "parmeter 'old' should be removed from signature if it is renamed to 'new'"
-                    )
-                else:
-                    raise TypeError(
-                        "parmeter 'old' should be renamed to 'new' in the signature"
-                    )
+    def since(self, version: str):
+        self.since_version = version
 
+    def __call__(self, f):
         def r(*a, **ka):
             new_ka = {}
             changed = False
             for key in ka:
-                if key in old_params:
+                if key in self.old_params:
                     old_arg = key
-                    new_arg = old_params[key]
+                    new_arg = self.old_params[key]
 
                     if new_arg in ka:
                         raise TypeError(
@@ -247,7 +240,7 @@ def argument_renamed(since_version=None, **old_params):
                 tokens = expr.tokens
 
                 for arg in expr.expr.keywords:
-                    if arg.arg not in old_params:
+                    if arg.arg not in self.old_params:
                         continue
 
                     arg_value = arg.value
@@ -265,26 +258,48 @@ def argument_renamed(since_version=None, **old_params):
                     assert op.string == "=", op.string
                     assert name.string == arg.arg
 
-                    replace(name, old_params[arg.arg])
+                    replace(name, self.old_params[arg.arg])
 
             f(*a, **new_ka)
 
+        # check misuse
         signature = inspect.signature(f)
+        for old_param, new_param in self.old_params.items():
+            if old_param in signature.parameters:
+                if new_param in signature.parameters:
+                    raise TypeError(
+                        "parameter 'old' should be removed from signature if it is renamed to 'new'"
+                    )
+                else:
+                    raise TypeError(
+                        "parameter 'old' should be renamed to 'new' in the signature"
+                    )
+
         parameters = list(signature.parameters.values()) + [
             signature.parameters[v].replace(
                 kind=inspect.Parameter.KEYWORD_ONLY,
                 name=k,
             )
-            for k, v in old_params.items()
+            for k, v in self.old_params.items()
         ]
 
         r.__signature__ = inspect.Signature(
             parameters, return_annotation=signature.return_annotation
         )
+        import textwrap
+
+        doc = f.__doc__ or ""
+        doc = textwrap.dedent(doc).rstrip() + "\n"
+        directive = ".. versionchanged::"
+        if self.since_version is not None:
+            directive += f" {version}"
+
+        for old_param, new_param in self.old_params.items():
+            doc += f"\n{directive}\n    parameter *{old_param}* was renamed to *{new_param}*\n"
+
+        r.__doc__ = doc
 
         return r
-
-    return w
 
 
 def inline_source(since_version=None):

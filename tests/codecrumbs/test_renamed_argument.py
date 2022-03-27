@@ -69,7 +69,7 @@ def test_parameter_renamed_misuse():
 
     with pytest.raises(
         TypeError,
-        match="parmeter 'old' should be removed from signature if it is renamed to 'new'",
+        match="parameter 'old' should be removed from signature if it is renamed to 'new'",
     ):
 
         @argument_renamed(old="new")
@@ -77,7 +77,7 @@ def test_parameter_renamed_misuse():
             never_called()
 
     with pytest.raises(
-        TypeError, match="parmeter 'old' should be renamed to 'new' in the signature"
+        TypeError, match="parameter 'old' should be renamed to 'new' in the signature"
     ):
 
         @argument_renamed(old="new")
