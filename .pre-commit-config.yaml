@@ -29,7 +29,7 @@ repos:
           - id: setup-cfg-fmt
 
     - repo: https://github.com/asottile/reorder_python_imports
-      rev: v2.7.1
+      rev: v3.0.1
       hooks:
           - args:
                 - --py38-plus
@@ -39,7 +39,7 @@ repos:
                 - --py38-plus
             id: pyupgrade
       repo: https://github.com/asottile/pyupgrade
-      rev: v2.31.0
+      rev: v2.31.1
     - hooks:
           - id: black
       repo: https://github.com/psf/black
@@ -63,4 +63,4 @@ repos:
             stages:
                 - commit-msg
       repo: https://github.com/commitizen-tools/commitizen
-      rev: v2.20.4
+      rev: v2.21.2
