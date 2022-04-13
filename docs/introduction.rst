@@ -54,7 +54,10 @@ Annotate your refactorings first
 
 Calling `cfgmod` now triggers an `DeprecationWarning` and redirects to `config_module`
 
-The code can be fixed by with::
+
+You can fix your code
+If you have tests for your code which calling the deprecated API
+can be fixed by with::
 
     pytest --codecrumbs-fix test_of_your_code.py
 

@@ -44,8 +44,20 @@ class FixIndex:
         return first
 
 
+class ClassObjectProperty:
+    def __init__(self, func):
+        self._func = func
+
+    def __get__(self, obj, objtype=None):
+
+        if obj is None:
+            return self._func(objtype, on_class=True)
+        else:
+            return self._func(obj, on_class=False)
+
+
 class renamed_attribute:
-    """
+    _class_doc = """
     specifies that all read and write accesses of an attribute should be renamed
     usage:
 
@@ -103,8 +115,10 @@ class renamed_attribute:
     def __init__(self, newname):
         self.new_name = newname
         self.fixes = FixIndex()
+        self.since_version = None
 
     def __set_name__(self, owner, name):
+        self._owner = owner
         self.current_name = name
 
     def __generic_fix(self):
@@ -167,6 +181,21 @@ class renamed_attribute:
 
         return getattr(obj, self.new_name)
 
+    @ClassObjectProperty
+    def __doc__(self, on_class):
+
+        if on_class:
+            return self._class_doc
+        elif getattr(getattr(self._owner, self.new_name), "__doc__", "").strip():
+            since = self.since_version or "<next>"
+            return f".. deprecated:: {since} this attribute was renamed to :attr:`{self.new_name}`"
+
+    if 0:
+
+        @property
+        def __doc__(self):
+            return "foo"
+
     def __set__(self, obj, value):
         self.__generic_fix()
 
@@ -194,6 +223,7 @@ class FunctionWrapper:
 
     def _set_since(self, version):
         self.since_version = version
+        return self
 
     @property
     def reverse_old_params(self):
@@ -291,13 +321,12 @@ class FunctionWrapper:
     @property
     def __doc__(self):
         doc = self.f.__doc__ or ""
-        doc = textwrap.dedent(doc).rstrip() + "\n"
-        directive = ".. versionchanged::"
-        if self.since_version is not None:
-            directive += f" {self.since_version}"
+        if doc:
+            doc = textwrap.dedent(doc).rstrip() + "\n"
+            directive = f".. versionchanged:: {self.since_version or '<next>'}"
 
-        for old_param, new_param in self.old_params.items():
-            doc += f"\n{directive}\n    parameter *{old_param}* was renamed to *{new_param}*\n"
+            for old_param, new_param in self.old_params.items():
+                doc += f"\n{directive}\n\n    parameter *{old_param}* was renamed to *{new_param}*\n"
 
         return doc
 
@@ -305,6 +334,10 @@ class FunctionWrapper:
 class argument_renamed:
     """
     `argument_renamed` is an decorator which can be used to rename argument names on the calling side of a method or fuction.
+
+    Arguments:
+        **old_params: specifies the replacement of the old arguments *(old_name="new_name")*.
+                        *new_name* has to be an argument of the function.
 
     example problem:
 

@@ -12,10 +12,5 @@ def test_argument_renamed():
 
     assert (
         test.__doc__
-        == """
-some docu
-
-.. versionchanged::
-    parameter *old* was renamed to *new*
-"""
+        =='\nsome docu\n\n.. versionchanged:: <next>\n\n    parameter *old* was renamed to *new*\n' 
     ), test.__doc__

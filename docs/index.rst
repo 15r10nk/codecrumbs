@@ -13,14 +13,4 @@ Welcome to codecrumbs documentation!
 
    introduction
    idea
-   examples
    reference
-
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
