@@ -1,4 +1,5 @@
 import subprocess as sp
+import sys
 
 import pytest
 
@@ -39,20 +40,20 @@ def compare(env):
         env.write("script.py", script_content)
 
         original_output = env.run(
-            "python", "script.py", *args, capture_output=True
+            sys.executable, "script.py", *args, capture_output=True, check=True
         ).stdout.decode()
 
         assert (
             env.run_codecrumbs(
-                "run", "--", "script.py", *args, capture_output=True
+                "run", "--", "script.py", *args, capture_output=True, check=True
             ).stdout.decode()
-            == original_output
+            == original_output,
         )
 
         assert env.read("script.py") != script_content
 
         second_output = env.run(
-            "python", "script.py", *args, capture_output=True
+            sys.executable, "script.py", *args, capture_output=True, check=True
         ).stdout.decode()
 
         assert second_output == original_output
