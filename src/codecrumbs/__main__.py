@@ -11,7 +11,11 @@ def main():
     parser = argparse.ArgumentParser(prog="codecrumbs")
     subparsers = parser.add_subparsers(dest="subcommand")
     run_parser = subparsers.add_parser("run", help="run a python script")
-    run_parser.add_argument("--fix")
+    run_parser.add_argument(
+        "--fix",
+        help="fix deprecated code after the command terminates",
+        action="store_true",
+    )
     run_parser.add_argument("command", nargs="*")
 
     args = parser.parse_args()
@@ -34,7 +38,8 @@ def main():
         except:
             raise
         finally:
-            change_recorder.fix_all()
+            if args.fix:
+                change_recorder.fix_all()
 
         exit(0)
 

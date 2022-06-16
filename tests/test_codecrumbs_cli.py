@@ -8,7 +8,12 @@ import pytest
 def env(tmp_path):
     class Env:
         def run(self, *args, **kwargs):
-            return sp.run(args, cwd=tmp_path, **kwargs)
+            result = sp.run(args, cwd=tmp_path, **kwargs)
+            if result.returncode != 0:
+                print(result.stdout)
+                print(result.stderr)
+                assert False
+            return result
 
         def run_codecrumbs(self, *args, **kwargs):
             return self.run("codecrumbs", *args, **kwargs)
@@ -45,7 +50,7 @@ def compare(env):
 
         assert (
             env.run_codecrumbs(
-                "run", "--", "script.py", *args, capture_output=True, check=True
+                "run", "--fix", "--", "script.py", *args, capture_output=True
             ).stdout.decode()
             == original_output,
         )
