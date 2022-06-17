@@ -1,6 +1,10 @@
+import os
 import subprocess as sp
 import sys
+from contextlib import contextmanager
+from pathlib import Path
 
+import patch
 import pytest
 
 
@@ -14,6 +18,13 @@ def env(tmp_path):
                 print(result.stderr)
                 assert False
             return result
+
+        @contextmanager
+        def in_cwd(self):
+            pwd = str(Path().absolute())
+            os.chdir(str(tmp_path))
+            yield
+            os.chdir(pwd)
 
         def run_codecrumbs(self, *args, **kwargs):
             return self.run("codecrumbs", *args, **kwargs)
@@ -30,6 +41,7 @@ def env(tmp_path):
         def __getattr__(self, name):
             return getattr(tmpdir, name)
 
+    print(f"work in {tmp_path}")
     return Env()
 
 
@@ -42,26 +54,46 @@ def test_help(env):
 @pytest.fixture
 def compare(env):
     def w(script_content, *args):
+
+        # generate patch file
         env.write("script.py", script_content)
 
         original_output = env.run(
-            sys.executable, "script.py", *args, capture_output=True, check=True
+            sys.executable, "script.py", *args, capture_output=True
         ).stdout.decode()
+
+        assert (
+            env.run_codecrumbs(
+                "run", "script.py", *args, capture_output=True
+            ).stdout.decode()
+            == original_output
+        )
+
+        with env.in_cwd():
+            patch.fromfile("script_codecrumbs.patch").apply()
+
+        patched_script = env.read("script.py")
+
+        # direct fix
+        env.write("script.py", script_content)
 
         assert (
             env.run_codecrumbs(
                 "run", "--fix", "--", "script.py", *args, capture_output=True
             ).stdout.decode()
-            == original_output,
+            == original_output
         )
 
-        assert env.read("script.py") != script_content
+        assert patched_script == env.read("script.py") != script_content
 
+        # run again and compare output
         second_output = env.run(
-            sys.executable, "script.py", *args, capture_output=True, check=True
+            sys.executable, "script.py", *args, capture_output=True
         ).stdout.decode()
 
         assert second_output == original_output
+
+        assert patched_script == env.read("script.py")
 
     return w
 
@@ -77,7 +109,7 @@ def func(new):
 
 func(old="hello")
 
-    """
+"""
     )
 
 

@@ -71,6 +71,14 @@ class SourceFile:
 
     def rewrite(self):
 
+        new_code = self.new_code()
+
+        if new_code is not None:
+
+            with open(self.filename, "bw") as code:
+                code.write(new_code.encode())
+
+    def new_code(self):
         replacements = list(self.replacements)
         replacements.sort()
 
@@ -107,8 +115,24 @@ class SourceFile:
         if add_end:
             new_code += code[last_i:]
 
-        with open(self.filename, "bw") as code:
-            code.write(new_code.encode())
+        return new_code
+
+    def generate_patch(self, basedir):
+
+        filename = self.filename
+        if filename.is_relative_to(basedir):
+            filename = filename.relative_to(basedir)
+
+        with open(self.filename, newline="") as code:
+            old_code = code.read().splitlines(keepends=True)
+
+        new_code = self.new_code().splitlines(keepends=True)
+
+        import difflib
+
+        yield from difflib.unified_diff(
+            old_code, new_code, fromfile=str(filename), tofile=str(filename)
+        )
 
 
 def get_source_file(filename):
@@ -160,6 +184,16 @@ class ChangeRecorder:
     def fix_all(self):
         for file in self._source_files.values():
             file.rewrite()
+
+    def generate_patchfile(self, filename):
+        with open(filename, "w") as patch:
+            for line in self.generate_patch(filename.parent):
+                patch.write(line)
+
+    def generate_patch(self, basedir):
+        for file in self._source_files.values():
+            if file.filename.is_relative_to(basedir):
+                yield from file.generate_patch(basedir)
 
     def dump(self):
         for file in self._source_files.values():

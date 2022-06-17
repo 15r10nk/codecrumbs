@@ -27,11 +27,12 @@ def main():
         init_globals = {"__file__": Path(script).resolve(), "__package__": ""}
 
         change_recorder = ChangeRecorder()
+        script_path = Path(script).resolve()
 
         try:
             with change_recorder.activate():
                 runpy.run_path(
-                    str(Path(script).resolve()),
+                    str(script_path),
                     init_globals=init_globals,
                     run_name="__main__",
                 )
@@ -40,6 +41,10 @@ def main():
         finally:
             if args.fix:
                 change_recorder.fix_all()
+            else:
+                change_recorder.generate_patchfile(
+                    script_path.with_name(script_path.stem + "_codecrumbs.patch")
+                )
 
         exit(0)
 
