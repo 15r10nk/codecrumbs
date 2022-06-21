@@ -1,7 +1,9 @@
 import ast
 import inspect
+import textwrap
 import token
 import warnings
+from functools import partial
 
 from ._calling_expression import calling_expression
 from ._rewrite_code import replace
@@ -176,6 +178,130 @@ class renamed_attribute:
         delattr(obj, self.new_name)
 
 
+def since(version):
+    def w(f):
+        f._set_since(version)
+        return f
+
+    return w
+
+
+class FunctionWrapper:
+    def __init__(self, function) -> None:
+        self.f = function
+        self.old_params = {}
+        self.since_version = None
+
+    def _set_since(self, version):
+        self.since_version = version
+
+    @property
+    def reverse_old_params(self):
+        return {v: k for k, v in self.items()}
+
+    def __get__(self, obj, cls):
+        if obj is not None:
+            return partial(self, obj)
+        else:
+            return self
+
+    def __call__(self, *a, **ka):
+        new_ka = {}
+        changed = False
+        for key in ka:
+            if key in self.old_params:
+                old_arg = key
+                new_arg = self.old_params[key]
+
+                if new_arg in ka:
+                    raise TypeError(
+                        f"{old_arg}=... and {new_arg}=... can not be used at the same time"
+                    )
+
+                warnings.warn(
+                    f'argument name "{old_arg}=" should be replaced with "{new_arg}=" (fixable with codecrumbs)',
+                    DeprecationWarning,
+                    stacklevel=2,
+                )
+
+                new_ka[new_arg] = ka[old_arg]
+                changed = True
+            else:
+                new_ka[key] = ka[key]
+
+        if changed:
+            expr = calling_expression()
+
+            tokens = expr.tokens
+
+            for arg in expr.expr.keywords:
+                if arg.arg not in self.old_params:
+                    continue
+
+                arg_value = arg.value
+                start = arg_value.lineno, arg_value.col_offset
+
+                mytokens = [
+                    t
+                    for t in tokens
+                    if t.start < start and t.type in (token.NAME, token.OP)
+                ]
+
+                name, op = mytokens[-2:]
+                name.filename = expr.filename
+
+                assert op.string == "=", op.string
+                assert name.string == arg.arg
+
+                replace(name, self.old_params[arg.arg])
+
+        return self.f(*a, **new_ka)
+
+    def _add_renamings(self, old_params):
+        self.old_params = old_params
+
+        # check missuse
+        signature = inspect.signature(self.f)
+        for old_param, new_param in self.old_params.items():
+            if old_param in signature.parameters:
+                if new_param in signature.parameters:
+                    raise TypeError(
+                        "parameter 'old' should be removed from signature if it is renamed to 'new'"
+                    )
+                else:
+                    raise TypeError(
+                        "parameter 'old' should be renamed to 'new' in the signature"
+                    )
+
+    @property
+    def __signature__(self):
+        signature = inspect.signature(self.f)
+        parameters = list(signature.parameters.values()) + [
+            signature.parameters[v].replace(
+                kind=inspect.Parameter.KEYWORD_ONLY,
+                name=k,
+            )
+            for k, v in self.old_params.items()
+        ]
+
+        return inspect.Signature(
+            parameters, return_annotation=signature.return_annotation
+        )
+
+    @property
+    def __doc__(self):
+        doc = self.f.__doc__ or ""
+        doc = textwrap.dedent(doc).rstrip() + "\n"
+        directive = ".. versionchanged::"
+        if self.since_version is not None:
+            directive += f" {self.since_version}"
+
+        for old_param, new_param in self.old_params.items():
+            doc += f"\n{directive}\n    parameter *{old_param}* was renamed to *{new_param}*\n"
+
+        return doc
+
+
 class argument_renamed:
     """
     `argument_renamed` is an decorator which can be used to rename argument names on the calling side of a method or fuction.
@@ -202,7 +328,6 @@ class argument_renamed:
     """
 
     def __init__(self, **old_params):
-        self.reverse_old_params = {v: k for k, v in old_params.items()}
         self.old_params = old_params
         self.since_version = None
 
@@ -210,96 +335,13 @@ class argument_renamed:
         self.since_version = version
 
     def __call__(self, f):
-        def r(*a, **ka):
-            new_ka = {}
-            changed = False
-            for key in ka:
-                if key in self.old_params:
-                    old_arg = key
-                    new_arg = self.old_params[key]
 
-                    if new_arg in ka:
-                        raise TypeError(
-                            f"{old_arg}=... and {new_arg}=... can not be used at the same time"
-                        )
-
-                    warnings.warn(
-                        f'argument name "{old_arg}=" should be replaced with "{new_arg}=" (fixable with codecrumbs)',
-                        DeprecationWarning,
-                        stacklevel=2,
-                    )
-
-                    new_ka[new_arg] = ka[old_arg]
-                    changed = True
-                else:
-                    new_ka[key] = ka[key]
-
-            if changed:
-                expr = calling_expression()
-
-                tokens = expr.tokens
-
-                for arg in expr.expr.keywords:
-                    if arg.arg not in self.old_params:
-                        continue
-
-                    arg_value = arg.value
-                    start = arg_value.lineno, arg_value.col_offset
-
-                    mytokens = [
-                        t
-                        for t in tokens
-                        if t.start < start and t.type in (token.NAME, token.OP)
-                    ]
-
-                    name, op = mytokens[-2:]
-                    name.filename = expr.filename
-
-                    assert op.string == "=", op.string
-                    assert name.string == arg.arg
-
-                    replace(name, self.old_params[arg.arg])
-
-            f(*a, **new_ka)
-
-        # check misuse
-        signature = inspect.signature(f)
-        for old_param, new_param in self.old_params.items():
-            if old_param in signature.parameters:
-                if new_param in signature.parameters:
-                    raise TypeError(
-                        "parameter 'old' should be removed from signature if it is renamed to 'new'"
-                    )
-                else:
-                    raise TypeError(
-                        "parameter 'old' should be renamed to 'new' in the signature"
-                    )
-
-        parameters = list(signature.parameters.values()) + [
-            signature.parameters[v].replace(
-                kind=inspect.Parameter.KEYWORD_ONLY,
-                name=k,
-            )
-            for k, v in self.old_params.items()
-        ]
-
-        r.__signature__ = inspect.Signature(
-            parameters, return_annotation=signature.return_annotation
-        )
-        import textwrap
-
-        doc = f.__doc__ or ""
-        doc = textwrap.dedent(doc).rstrip() + "\n"
-        directive = ".. versionchanged::"
+        wrapper = FunctionWrapper(f)
+        wrapper._add_renamings(self.old_params)
         if self.since_version is not None:
-            directive += f" {version}"
+            wrapper._set_since(self.since_version)
 
-        for old_param, new_param in self.old_params.items():
-            doc += f"\n{directive}\n    parameter *{old_param}* was renamed to *{new_param}*\n"
-
-        r.__doc__ = doc
-
-        return r
+        return wrapper
 
 
 def inline_source(since_version=None):
