@@ -17,6 +17,16 @@ except ImportError:
         return zip(a, b)
 
 
+# copied from pathlib to support python < 3.9
+def is_relative_to(path, *other):
+    """Return True if the path is relative to another path or False."""
+    try:
+        path.relative_to(*other)
+        return True
+    except ValueError:
+        return False
+
+
 @dataclass(order=True)
 class Replacement:
     start: tuple[int, int]
@@ -120,7 +130,7 @@ class SourceFile:
     def generate_patch(self, basedir):
 
         filename = self.filename
-        if filename.is_relative_to(basedir):
+        if is_relative_to(filename, basedir):
             filename = filename.relative_to(basedir)
 
         with open(self.filename, newline="") as code:
@@ -192,7 +202,7 @@ class ChangeRecorder:
 
     def generate_patch(self, basedir):
         for file in self._source_files.values():
-            if file.filename.is_relative_to(basedir):
+            if is_relative_to(file.filename, basedir):
                 yield from file.generate_patch(basedir)
 
     def dump(self):
