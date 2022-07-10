@@ -14,3 +14,5 @@ Welcome to codecrumbs documentation!
    introduction
    idea
    reference
+
+   examples

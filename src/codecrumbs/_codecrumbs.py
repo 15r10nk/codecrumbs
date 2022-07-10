@@ -366,6 +366,7 @@ class argument_renamed:
 
     def since(self, version: str):
         self.since_version = version
+        return self
 
     def __call__(self, f):
 
