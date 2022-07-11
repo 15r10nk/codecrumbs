@@ -1,6 +1,6 @@
 import inspect
 import io
-import re
+import warnings
 from contextlib import redirect_stdout
 
 import pytest
@@ -19,11 +19,8 @@ def run_test(old_code, new_code, *, warning=None, output="", filename, frame):
     l = dict(frame.f_locals)
 
     first_output = io.StringIO()
-    with (
-        pytest.warns(None)
-        if warning is None
-        else pytest.warns(DeprecationWarning, match=re.escape(warning))
-    ):
+    with warnings.catch_warnings(record=True) as record:
+
         with redirect_stdout(first_output):
             code = compile(filename.read_bytes(), str(filename), "exec")
             d["__file__"] = str(filename)
@@ -31,6 +28,15 @@ def run_test(old_code, new_code, *, warning=None, output="", filename, frame):
         print(first_output.getvalue())
 
         assert first_output.getvalue() == output, (first_output.getvalue(), output)
+
+    if warning is None:
+        assert not record, record
+    else:
+        assert (
+            len(record) == 1
+            and record[0].category is DeprecationWarning
+            and str(record[0].message) == warning
+        ), record
 
     rewrite(filename)
 
@@ -43,8 +49,16 @@ def run_test(old_code, new_code, *, warning=None, output="", filename, frame):
 
 
 def run_second_test(old_code, new_code, *, warning=None, output="", filename, frame):
+    """
+    fixing the new_code again should result in no warnings and no changes
+    """
     return run_test(
-        new_code, new_code, warning=None, output=output, filename=filename, frame=frame
+        new_code,
+        new_code,
+        warning=None if new_code != old_code else warning,
+        output=output,
+        filename=filename,
+        frame=frame,
     )
 
 

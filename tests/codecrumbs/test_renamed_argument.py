@@ -26,7 +26,9 @@ def test_parameter_renames(test_rewrite):
 
     m = Method()
 
-    error_msg = ""
+    error_msg = (
+        'argument name "old=" should be replaced with "new=" (fixable with codecrumbs)'
+    )
 
     test_rewrite(
         "m.method(old=5)", "m.method(new=5)", warning=error_msg, output="2 5\n"
