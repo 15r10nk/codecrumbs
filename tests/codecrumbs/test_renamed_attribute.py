@@ -153,7 +153,7 @@ def test_renamed_classmethod(test_rewrite):
 
 def test_parameter_renamed_method(test_rewrite):
     class Example:
-        @argument_renamed(old="new")
+        @argument_renamed("old", "new")
         def method(self, new):
             assert new == 5
             print(new)

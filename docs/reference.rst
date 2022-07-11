@@ -31,9 +31,6 @@ Rename function arguments
 
 .. autodecorator:: codecrumbs.argument_renamed
 
-   .. automethod:: codecrumbs.argument_renamed.since
-
-
 The changed signature is added to the docstring, if the function is documented.
 
 Example:

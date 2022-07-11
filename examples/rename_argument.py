@@ -1,8 +1,8 @@
-from codecrumbs import renamed_argument
+from codecrumbs import argument_renamed
 
 
-@renamed_argument(old="new")
-@renamed_argument(older="newer").since("1.1")
+@argument_renamed("old", "new")
+@argument_renamed("older", "newer", since="1.1")
 def function(new, newer):
     """
     this is the function with the new argument
@@ -10,6 +10,6 @@ def function(new, newer):
     return new
 
 
-@renamed_argument(old="new")
+@argument_renamed("old", "new")
 def undocumented_function(new):
     return new

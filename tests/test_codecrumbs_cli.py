@@ -14,8 +14,8 @@ def env(tmp_path):
         def run(self, *args, **kwargs):
             result = sp.run(args, cwd=tmp_path, **kwargs)
             if result.returncode != 0:
-                print(result.stdout)
-                print(result.stderr)
+                print(result.stdout.decode())
+                print(result.stderr.decode())
                 assert False
             return result
 
@@ -103,7 +103,7 @@ def test_run_hello_world(compare):
         """
 import codecrumbs
 
-@codecrumbs.argument_renamed(old="new")
+@codecrumbs.argument_renamed("old","new")
 def func(new):
     print(new)
 

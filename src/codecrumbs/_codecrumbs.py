@@ -3,6 +3,7 @@ import inspect
 import textwrap
 import token
 import warnings
+from dataclasses import dataclass
 from functools import partial
 
 from ._calling_expression import calling_expression
@@ -207,18 +208,28 @@ class renamed_attribute:
         delattr(obj, self.new_name)
 
 
-def since(version):
-    def w(f):
-        f._set_since(version)
-        return f
+@dataclass
+class DeprecationRenaming:
+    since: str
+    old_name: str
+    new_name: str
 
-    return w
+    def get_documentation(self):
+        directive = f".. versionchanged:: {self.since or '<next>'}"
+        return f"\n{directive}\n\n    parameter *{self.old_name}* was renamed to *{self.new_name}*\n"
 
 
 class FunctionWrapper:
+    @staticmethod
+    def of(obj):
+        if isinstance(obj, FunctionWrapper):
+            return obj
+        return FunctionWrapper(obj)
+
     def __init__(self, function) -> None:
         self.f = function
         self.old_params = {}
+        self.deprecations = []
         self.since_version = None
 
     def _set_since(self, version):
@@ -287,21 +298,22 @@ class FunctionWrapper:
 
         return self.f(*a, **new_ka)
 
-    def _add_renamings(self, old_params):
-        self.old_params = old_params
-
+    def _add_renaming(self, old_param, new_param, since):
         # check missuse
         signature = inspect.signature(self.f)
-        for old_param, new_param in self.old_params.items():
-            if old_param in signature.parameters:
-                if new_param in signature.parameters:
-                    raise TypeError(
-                        "parameter 'old' should be removed from signature if it is renamed to 'new'"
-                    )
-                else:
-                    raise TypeError(
-                        "parameter 'old' should be renamed to 'new' in the signature"
-                    )
+        if old_param in signature.parameters:
+            if new_param in signature.parameters:
+                raise TypeError(
+                    "parameter 'old' should be removed from signature if it is renamed to 'new'"
+                )
+            else:
+                raise TypeError(
+                    "parameter 'old' should be renamed to 'new' in the signature"
+                )
+        self.old_params[old_param] = new_param
+        self.deprecations.append(
+            DeprecationRenaming(since=since, old_name=old_param, new_name=new_param)
+        )
 
     @property
     def __signature__(self):
@@ -323,59 +335,20 @@ class FunctionWrapper:
         doc = self.f.__doc__ or ""
         if doc:
             doc = textwrap.dedent(doc).rstrip() + "\n"
-            directive = f".. versionchanged:: {self.since_version or '<next>'}"
-
-            for old_param, new_param in self.old_params.items():
-                doc += f"\n{directive}\n\n    parameter *{old_param}* was renamed to *{new_param}*\n"
+            for deprecation in sorted(self.deprecations, key=lambda d: d.since):
+                doc += deprecation.get_documentation()
 
         return doc
 
 
-class argument_renamed:
-    """
-    `argument_renamed` is an decorator which can be used to rename argument names on the calling side of a method or fuction.
-
-    Arguments:
-        **old_params: specifies the replacement of the old arguments *(old_name="new_name")*.
-                        *new_name* has to be an argument of the function.
-
-    example problem:
-
-    >>> def function(old_name):
-    ...     print(old_name)
-    ...
-    >>> function(old_name=5)
-    5
-
-    refactoring:
-
-    >>> @argument_renamed(old_name="new_name")
-    ... def function(new_name):
-    ...     print(new_name)
-    >>> function(old_name=5)
-    file.py:1: DeprecationWarning: argument name "old_name=" should be replaced with "new_name=" (fixable with codecrumbs)
-    5
-
-    :raises TypeError: if the old named argument is still present in the signature
-
-    """
-
-    def __init__(self, **old_params):
-        self.old_params = old_params
-        self.since_version = None
-
-    def since(self, version: str):
-        self.since_version = version
-        return self
-
-    def __call__(self, f):
-
-        wrapper = FunctionWrapper(f)
-        wrapper._add_renamings(self.old_params)
-        if self.since_version is not None:
-            wrapper._set_since(self.since_version)
+def argument_renamed(old_name: str, new_name: str, *, since=None):
+    def w(f):
+        wrapper = FunctionWrapper.of(f)
+        wrapper._add_renaming(old_name, new_name, since)
 
         return wrapper
+
+    return w
 
 
 def inline_source(since_version=None):

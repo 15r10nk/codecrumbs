@@ -8,7 +8,7 @@ from ..helper import never_called
 
 def test_preserve_signature():
     class Test:
-        @argument_renamed(old="new")
+        @argument_renamed("old", "new")
         def a(self, new: str) -> None:
             never_called()
 
@@ -20,7 +20,7 @@ def test_preserve_signature():
 
 def test_parameter_renames(test_rewrite):
     class Method:
-        @argument_renamed(old="new")
+        @argument_renamed("old", "new")
         def method(self, other=2, new=1):
             print(other, new)
 
@@ -72,7 +72,7 @@ def test_parameter_renamed_misuse():
         match="parameter 'old' should be removed from signature if it is renamed to 'new'",
     ):
 
-        @argument_renamed(old="new")
+        @argument_renamed("old", "new")
         def function(old=2, new=1):
             never_called()
 
@@ -80,6 +80,6 @@ def test_parameter_renamed_misuse():
         TypeError, match="parameter 'old' should be renamed to 'new' in the signature"
     ):
 
-        @argument_renamed(old="new")
+        @argument_renamed("old", "new")
         def function(old=2):
             never_called()
