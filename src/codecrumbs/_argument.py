@@ -143,6 +143,34 @@ class FunctionWrapper:
 
 
 def argument_renamed(old_name: str, new_name: str, *, since=None):
+    """
+        `argument_renamed` is an decorator which can be used to rename argument names on the calling side of a method or fuction.
+
+        Arguments:
+            old_name: the old argument name which should not be used anymore
+            new_name: the new argument name which should be used from now one
+
+        example problem:
+
+        >>> def function(old):
+        ...     print(old)
+        ...
+        >>> function(old=5)
+        5
+
+        refactoring:
+
+        >>> @argument_renamed("old", "new")
+        ... def function(new):
+        ...     print(new)
+        >>> function(old=5)
+        file.py:1: DeprecationWarning: argument name "old=" should be replaced with "new=" (fixable with codecrumbs)
+        5
+
+        :raises TypeError: if the old named argument is still present in the signature
+
+    """
+
     def w(f):
         wrapper = FunctionWrapper.of(f)
         wrapper._add_renaming(old_name, new_name, since)
@@ -150,3 +178,19 @@ def argument_renamed(old_name: str, new_name: str, *, since=None):
         return wrapper
 
     return w
+
+
+def argument_keyword_only(name, *, since=None):
+    raise NotImplemented
+
+
+def argument_positional_only(name, *, since=None):
+    raise NotImplemented
+
+
+def argument_removed_default(name, *, since=None):
+    raise NotImplemented
+
+
+def argument_removed(name, *, since=None):
+    raise NotImplemented

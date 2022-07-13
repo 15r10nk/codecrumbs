@@ -198,6 +198,8 @@ class renamed_attribute:
 
 
 def inline_source(since_version=None):
+    raise NotImplemented
+
     def w(f):
         def r(*a, **ka):
             warnings.warn(

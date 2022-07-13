@@ -89,10 +89,24 @@ def code_formatting(request):
 
 @pytest.fixture(params=[run_test, run_second_test])
 def test_rewrite(request, tmp_path, code_formatting):
+    """
+    fixture which return a function which can be used to check the refactoring of some sourcecode in the current scope
+
+
+    """
+
     idx = 0
 
-    def test(old_code, new_code, *, warning=None, output=""):
+    def test(old_code, new_code, *, warning, output=""):
+        """
+        checks that:
+            * old_code gets fixet to new_code
+            * a DeprecationWarning warning is raised
+            * that output matches stdout
+        """
         nonlocal idx
+
+        assert warning is not None
 
         def indent_of(pattern):
 
