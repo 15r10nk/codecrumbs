@@ -29,9 +29,9 @@ class FunctionWrapper:
 
     def __init__(self, function) -> None:
         self.f = function
-        self.old_params = {}
-        self.deprecations = []
-        self.since_version = None
+        self.old_params: dict[str, str] = {}
+        self.deprecations: list[DeprecationRenaming] = []
+        self.since_version: str | None = None
 
     def _set_since(self, version):
         self.since_version = version

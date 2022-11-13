@@ -30,11 +30,14 @@ def docs(session):
 
 @nox.session(python="python3.10")
 def mypy(session):
+    session.install("poetry")
+    session.run("poetry", "install", "--with=dev")
     session.run("mypy", "src", "tests")
 
 
 @nox.session(python="python3.11")
 def py311(session):
+    session.install("poetry")
     session.run("poetry", "install", "--with=dev")
     session.run(
         "pytest", "--assert=plain", "tests", "--doctest-modules", "src/codecrumbs"
@@ -43,6 +46,7 @@ def py311(session):
 
 @nox.session(python=["3.8", "3.9", "3.10"])
 def test(session):
+    session.install("poetry")
     session.run("poetry", "install", "--with=dev")
     session.run(
         "coverage",
