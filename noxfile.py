@@ -1,0 +1,67 @@
+import nox
+
+nox.options.sessions = ["clean", "test", "report", "docs"]
+
+
+@nox.session(python="python3.10")
+def clean(session):
+    session.install("coverage")
+    session.run("coverage", "erase")
+
+
+@nox.session(python="python3.10")
+def docs(session):
+    """invoke sphinx-build to build the HTML docs"""
+    session.install("sphinx", "sphinx_rtd_theme")
+    session.install(".")
+    session.run(
+        "sphinx-build",
+        "-d",
+        "docs/_build",
+        "docs",
+        "public",
+        "--color",
+        "-W",
+        "--keep-going",
+        "-n",
+        "-bhtml",
+    )
+
+
+@nox.session(python="python3.10")
+def mypy(session):
+    session.run("mypy", "src", "tests")
+
+
+@nox.session(python="python3.11")
+def py311(session):
+    session.run("poetry", "install", "--with=dev")
+    session.run(
+        "pytest", "--assert=plain", "tests", "--doctest-modules", "src/codecrumbs"
+    )
+
+
+@nox.session(python=["3.8", "3.9", "3.10"])
+def test(session):
+    session.run("poetry", "install", "--with=dev")
+    session.run(
+        "coverage",
+        "run",
+        "--source=src,tests",
+        "--parallel-mode",
+        "--branch",
+        "-m",
+        "pytest",
+        "--doctest-modules",
+        "src/codecrumbs",
+        "tests",
+        "--assert=plain",
+    )
+
+
+@nox.session(python="python3.10")
+def report(session):
+    session.install("coverage")
+    session.run("coverage", "combine")
+    session.run("coverage", "html")
+    session.run("coverage", "report", "--fail-under", "86")
