@@ -1,7 +1,32 @@
 [build-system]
-requires = [
-    "setuptools >= 45",
-    "wheel",
-    "setuptools_scm >= 6.2"
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "codecrumbs"
+version = "0.1.0"
+description = "leave codecrumbs behind so that other can adopt the changes"
+authors = ["Frank Hoffmann <15r10nk@polarbit.de>"]
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/15r10nk/codecrumbs"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Framework :: Pytest",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: Implementation :: CPython",
 ]
-build-backend = "setuptools.build_meta"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.2.0"
+
+[tool.poetry.plugins.pytest11]
+codecrumbs = "codecrumbs.pytest_plugin"
+
+[tool.poetry.scripts]
+codecrumbs = "codecrumbs.__main__:main"
