@@ -14,72 +14,55 @@ pytest-codecrumbs
     :target: https://ci.appveyor.com/project/15r10nk/pytest-codecrumbs/branch/master
     :alt: See Build Status on AppVeyor
 
-Breadcrumes devides refactorings in a declaration phase, where you leave codecrumbs behind
+Codecrumbs divides refactoring in a declaration phase, where you leave codecrumbs behind
 and an application step, where you or some one else follows the codecrumbs.
 
-simple example which renames one method:
+Example
+-------
+
+Simple example which renames one argument:
 
 .. code:
     class Example:
-        # delete old code ...
-        # def old_method(self):
-        #    pass
+        # old code ...
+        # def method(self,v):
+        #    print(v)
 
-        old_method= codecrumbs.renamed("new_method")
-
-        def new_method(self):
-            print("new stuff ...")
+        @renamed_argument("v","value")
+        def method(self,value):
+            print(value)
 
     # some where else
     e=Example()
 
-    e.old_method()
+    e.method(v=5)
 
-and apply the refactorings later
+and apply the refactoring later
 
 .. code:
     codecrumbs example.py
     # or
     pytest --codecrumbs-fix test_example.py
 
-You can use codecrumbs instead of python to execute your code, or pytest to run your tests and apply the renamings automatically.
+You can use `codecrumbs` instead of `python` to execute your code, or `pytest`_ to run your tests and apply the renamings automatically.
 
 This can be used to fix the small things in your library you wanted to fix but never did,
- because you wanted to stay backwards compatible or didn't wanted you user to fix 1000 renamings in their code.
-
-with codecrumbs you can fix.
- * method / attribute names
- * rename named arguments of functions
-
-----
-
-This `pytest`_ plugin was generated with `Cookiecutter`_ along with `@hackebrot`_'s `cookiecutter-pytest-plugin`_ template.
-
+because you wanted to stay backwards compatible or didn't wanted you user to fix 1000 renamings in their code.
 
 Features
 --------
-
-* TODO
-
-
-Requirements
-------------
-
-* TODO
+with codecrumbs you can fix:
+ * method / attribute names
+ * rename named arguments of functions
 
 
 Installation
 ------------
 
-You can install "pytest-codecrumbs" via `pip`_ from `PyPI`_::
+You can install "codecrumbs" via `pip`_ from `PyPI`_::
 
-    $ pip install pytest-codecrumbs
+    $ pip install codecrumbs
 
-
-Usage
------
-
-* TODO
 
 Contributing
 ------------

@@ -62,32 +62,32 @@ def test_renamed_hasattr_getattr(test_rewrite):
     test_rewrite(
         'assert getattr(e,"old") == 1',
         'assert getattr(e,"new") == 1',
-        warning='getattr(...,"old") should be replaced with getattr(...,"new") (fixable with codecrumbs)',
+        warning='getattr(..., "old") should be replaced with getattr(..., "new") (fixable with codecrumbs)',
     )
 
     test_rewrite(
         'assert hasattr(e,"old")',
         'assert hasattr(e,"new")',
-        warning='hasattr(...,"old") should be replaced with hasattr(...,"new") (fixable with codecrumbs)',
+        warning='hasattr(..., "old") should be replaced with hasattr(..., "new") (fixable with codecrumbs)',
     )
 
     test_rewrite(
         'assert not hasattr(e,"no_attr")',
         'assert not hasattr(e,"new_no_attr")',
-        warning='hasattr(...,"no_attr") should be replaced with hasattr(...,"new_no_attr") (fixable with codecrumbs)',
+        warning='hasattr(..., "no_attr") should be replaced with hasattr(..., "new_no_attr") (fixable with codecrumbs)',
     )
 
     test_rewrite(
         'setattr(e,"old",3)',
         'setattr(e,"new",3)',
-        warning='setattr(...,"old") should be replaced with setattr(...,"new") (fixable with codecrumbs)',
+        warning='setattr(..., "old") should be replaced with setattr(..., "new") (fixable with codecrumbs)',
     )
     assert e.new == 3
 
     test_rewrite(
         'delattr(e,"old")',
         'delattr(e,"new")',
-        warning='delattr(...,"old") should be replaced with delattr(...,"new") (fixable with codecrumbs)',
+        warning='delattr(..., "old") should be replaced with delattr(..., "new") (fixable with codecrumbs)',
     )
 
     assert not hasattr(e, "new")
@@ -96,22 +96,22 @@ def test_renamed_hasattr_getattr(test_rewrite):
     test_rewrite(
         "setattr(e,old_attr,5)",
         "setattr(e,old_attr,5)",
-        warning='setattr(...,attr) is called with attr="old" but should be called with "new" (please fix manual)',
+        warning='setattr(..., attr) is called with attr="old" but should be called with "new" (please fix manual)',
     )
     test_rewrite(
         "assert getattr(e,old_attr)==5",
         "assert getattr(e,old_attr)==5",
-        warning='getattr(...,attr) is called with attr="old" but should be called with "new" (please fix manual)',
+        warning='getattr(..., attr) is called with attr="old" but should be called with "new" (please fix manual)',
     )
     test_rewrite(
         "assert hasattr(e,old_attr)",
         "assert hasattr(e,old_attr)",
-        warning='hasattr(...,attr) is called with attr="old" but should be called with "new" (please fix manual)',
+        warning='hasattr(..., attr) is called with attr="old" but should be called with "new" (please fix manual)',
     )
     test_rewrite(
         "delattr(e,old_attr)",
         "delattr(e,old_attr)",
-        warning='delattr(...,attr) is called with attr="old" but should be called with "new" (please fix manual)',
+        warning='delattr(..., attr) is called with attr="old" but should be called with "new" (please fix manual)',
     )
 
 

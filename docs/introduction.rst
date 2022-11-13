@@ -2,15 +2,15 @@
 Introduction
 ============
 
-Breadcrumes is a Python library (and pytest plugin) for source code refactoring.
-It allows you to change the API of your library and to propagate this changes to every one who uses your libaray.
+Codecrumbs is a Python library (and pytest plugin) for source code refactoring across library boundaries.
+It allows you to change the API of your library and to propagate this changes to every one who uses your library.
 
 The invocation of deprecated API is detected at runtime and fixes can be generated.
 
 This removes the pain of fixing upstream API changes manually.
 The developer can now rename all the functions who need an better name without to fear that he drives his users crazy because they have to fix thousands of lines of code.
 This saves valuable developer time.
-However it is not 100% save and the refactorings may break your code (see `known problems`)
+However it is not 100% save and the refactoring may break your code (see `known problems`)
 
 
 .. note::
@@ -38,7 +38,7 @@ fix the deprecated API calls without to install additional libraries.
 Quick Start
 -----------
 
-Annotate your refactorings first
+Annotate your refactoring first
 
 .. code::
 

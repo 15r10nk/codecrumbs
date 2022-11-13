@@ -54,33 +54,9 @@ class ClassObjectProperty:
 
 class renamed_attribute:
     _class_doc = """
-    specifies that all read and write accesses of an attribute should be renamed
-    usage:
+    Specifies that all read and write accesses of an attribute should be renamed.
 
-    >>> class Test:
-    ...     old_attribute = renamed_attribute("new_attribute")
-    ...     new_attribute = 5
-    ...
-    >>> Test.old_attribute
-    file.py:1: DeprecationWarning: ".old_attribute" should be replaced with ".new_attribute" (fixable with codecrumbs)
-    5
-
-    An access to the old attribute results in a deprecation warning and the calling code is memorized for refacting.
-
-    It can also be used to rename methods:
-
-    >>> class Test:
-    ...     old_method = renamed_attribute("new_method")
-    ...
-    ...     def new_method(self):
-    ...         return 5
-    ...
-    >>> t = Test()
-    >>> t.old_method()
-    file.py:1: DeprecationWarning: ".old_method" should be replaced with ".new_method" (fixable with codecrumbs)
-    5
-
-    And also to rename instance attributes:
+    Usage:
 
     >>> class Point:
     ...     data_x = renamed_attribute("x")
@@ -97,14 +73,40 @@ class renamed_attribute:
     file.py:1: DeprecationWarning: ".data_x" should be replaced with ".x" (fixable with codecrumbs)
     1
 
-    It renames also has/get/set/delattr() calls if the argument is a Constant
+    An access to the old attribute results in a deprecation warning and the calling code is memorized for refactoring.
+
+    It renames also `has/get/set/delattr()` calls if the argument is a constant:
 
     >>> class Test:
     ...     old_attribute = renamed_attribute("new_attribute")
     ...
     >>> t = Test()
     >>> assert not hasattr(t, "old_attribute")
-    file.py:1: DeprecationWarning: hasattr(...,"old_attribute") should be replaced with hasattr(...,"new_attribute") (fixable with codecrumbs)
+    file.py:1: DeprecationWarning: hasattr(..., "old_attribute") should be replaced with hasattr(..., "new_attribute") (fixable with codecrumbs)
+
+    Read access to class attributes can also be renamed:
+
+    >>> class Test:
+    ...     old_attribute = renamed_attribute("new_attribute")
+    ...     new_attribute = 5
+    ...
+    >>> Test.old_attribute
+    file.py:1: DeprecationWarning: ".old_attribute" should be replaced with ".new_attribute" (fixable with codecrumbs)
+    5
+
+    It can also be used to rename methods:
+
+    >>> class Test:
+    ...     old_method = renamed_attribute("new_method")
+    ...
+    ...     def new_method(self):
+    ...         return 5
+    ...
+    >>> t = Test()
+    >>> t.old_method()
+    file.py:1: DeprecationWarning: ".old_method" should be replaced with ".new_method" (fixable with codecrumbs)
+    5
+
 
     """
 
@@ -136,7 +138,7 @@ class renamed_attribute:
                 if isinstance(namearg, ast.Constant):
                     # getattr(obj,"attr")
                     warnings.warn(
-                        f'{e.id}(...,"{self.current_name}") should be replaced with {e.id}(...,"{self.new_name}") (fixable with codecrumbs)',
+                        f'{e.id}(..., "{self.current_name}") should be replaced with {e.id}(..., "{self.new_name}") (fixable with codecrumbs)',
                         DeprecationWarning,
                         stacklevel=3,
                     )
@@ -144,7 +146,7 @@ class renamed_attribute:
                 else:
                     # getattr(obj,attr_var)
                     warnings.warn(
-                        f'{e.id}(...,attr) is called with attr="{self.current_name}" but should be called with "{self.new_name}" (please fix manual)',
+                        f'{e.id}(..., attr) is called with attr="{self.current_name}" but should be called with "{self.new_name}" (please fix manual)',
                         DeprecationWarning,
                         stacklevel=3,
                     )
