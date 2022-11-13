@@ -163,6 +163,7 @@ def argument_renamed(old_name: str, new_name: str, *, since=None):
     >>> @argument_renamed("old", "new")
     ... def function(new):
     ...     print(new)
+    ...
     >>> function(old=5)
     file.py:1: DeprecationWarning: argument name "old=" should be replaced with "new=" (fixable with codecrumbs)
     5
