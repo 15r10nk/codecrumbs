@@ -1,13 +1,9 @@
 
-References
-==========
-
-Rename class attributes
------------------------
+# Documentation generation
 
 
-.. automodule:: codecrumbs
-    :members: renamed_attribute
+
+
 
 
 The redirection to the new attribute is documented in the docstring, if the target is also documented.
@@ -23,13 +19,6 @@ The generated documentation looks like follow:
 
 
 
-
-
-Rename function arguments
--------------------------
-
-
-.. autodecorator:: codecrumbs.argument_renamed
 
 The changed signature is added to the docstring, if the function is documented.
 

@@ -1,0 +1,32 @@
+site_name: codecrumbs
+site_url: https://codecrumbs.readthedocs.io/
+repo_url: https://github.com/15r10nk/codecrumbs/
+edit_uri: edit/main/docs
+watch:
+- src/codecrumbs
+
+theme:
+  name: readthedocs
+
+nav:
+- Introduction: introduction.md
+- Workflow: workflow.md
+- Reference: reference.md
+    # TODO: add documentation again
+    #  - Documentation: documentation.md
+
+markdown_extensions:
+- admonition
+- pymdownx.highlight:
+    anchor_linenums: true
+- pymdownx.inlinehilite
+- pymdownx.snippets
+- pymdownx.superfences
+
+plugins:
+- mkdocstrings:
+    handlers:
+      python:
+        options:
+          show_root_heading: true
+          show_source: false

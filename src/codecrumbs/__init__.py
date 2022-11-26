@@ -3,3 +3,10 @@ from ._attribute import renamed_attribute
 
 
 __version__ = "0.1.0"
+
+
+def foo(a: int):
+    """
+
+    some doc
+    """

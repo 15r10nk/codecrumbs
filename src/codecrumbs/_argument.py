@@ -152,14 +152,18 @@ def argument_renamed(old_name: str, new_name: str, *, since=None):
 
     Example problem:
 
+    ```pycon
     >>> def function(old):
     ...     print(old)
     ...
     >>> function(old=5)
     5
 
+    ```
+
     Refactoring:
 
+    ```pycon
     >>> @argument_renamed("old", "new")
     ... def function(new):
     ...     print(new)
@@ -168,7 +172,10 @@ def argument_renamed(old_name: str, new_name: str, *, since=None):
     file.py:1: DeprecationWarning: argument name "old=" should be replaced with "new=" (fixable with codecrumbs)
     5
 
-    :raises TypeError: if the old named argument is still present in the signature
+    ```
+
+    Raises:
+        TypeError: If the old named argument is still present in the signature.
 
     """
 

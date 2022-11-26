@@ -1,31 +1,12 @@
 import nox
 
-nox.options.sessions = ["clean", "test", "report", "docs"]
+nox.options.sessions = ["clean", "test", "report"]
 
 
 @nox.session(python="python3.10")
 def clean(session):
     session.install("coverage")
     session.run("coverage", "erase")
-
-
-@nox.session(python="python3.10")
-def docs(session):
-    """invoke sphinx-build to build the HTML docs"""
-    session.install("sphinx", "sphinx_rtd_theme")
-    session.install(".")
-    session.run(
-        "sphinx-build",
-        "-d",
-        "docs/_build",
-        "docs",
-        "public",
-        "--color",
-        "-W",
-        "--keep-going",
-        "-n",
-        "-bhtml",
-    )
 
 
 @nox.session(python="python3.10")

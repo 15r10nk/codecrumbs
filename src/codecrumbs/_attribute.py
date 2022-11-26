@@ -58,25 +58,28 @@ class renamed_attribute:
 
     Usage:
 
+    ```pycon
     >>> class Point:
     ...     data_x = renamed_attribute("x")
     ...     data_y = renamed_attribute("y")
-    ...
     ...     def __init__(self, x, y):
     ...         self.data_x = x
     ...         self.data_y = y
     ...
     >>> p = Point(1, 2)
-    file.py:6: DeprecationWarning: ".data_x" should be replaced with ".x" (fixable with codecrumbs)
-    file.py:7: DeprecationWarning: ".data_y" should be replaced with ".y" (fixable with codecrumbs)
+    file.py:5: DeprecationWarning: ".data_x" should be replaced with ".x" (fixable with codecrumbs)
+    file.py:6: DeprecationWarning: ".data_y" should be replaced with ".y" (fixable with codecrumbs)
     >>> p.data_x
     file.py:1: DeprecationWarning: ".data_x" should be replaced with ".x" (fixable with codecrumbs)
     1
 
+    ```
+
     An access to the old attribute results in a deprecation warning and the calling code is memorized for refactoring.
 
-    It renames also `has/get/set/delattr()` calls if the argument is a constant:
+    It renames also `has/get/set/delattr()` calls if the argument is a literal string:
 
+    ```pycon
     >>> class Test:
     ...     old_attribute = renamed_attribute("new_attribute")
     ...
@@ -84,8 +87,11 @@ class renamed_attribute:
     >>> assert not hasattr(t, "old_attribute")
     file.py:1: DeprecationWarning: hasattr(..., "old_attribute") should be replaced with hasattr(..., "new_attribute") (fixable with codecrumbs)
 
+    ```
+
     Read access to class attributes can also be renamed:
 
+    ```pycon
     >>> class Test:
     ...     old_attribute = renamed_attribute("new_attribute")
     ...     new_attribute = 5
@@ -94,8 +100,11 @@ class renamed_attribute:
     file.py:1: DeprecationWarning: ".old_attribute" should be replaced with ".new_attribute" (fixable with codecrumbs)
     5
 
+    ```
+
     It can also be used to rename methods:
 
+    ```pycon
     >>> class Test:
     ...     old_method = renamed_attribute("new_method")
     ...
@@ -106,6 +115,8 @@ class renamed_attribute:
     >>> t.old_method()
     file.py:1: DeprecationWarning: ".old_method" should be replaced with ".new_method" (fixable with codecrumbs)
     5
+
+    ```
 
 
     """
