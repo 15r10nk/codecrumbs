@@ -1,6 +1,6 @@
 import nox
 
-nox.options.sessions = ["clean", "test", "report"]
+nox.options.sessions = ["clean", "test", "report", "docs"]
 
 
 @nox.session(python="python3.10")
@@ -50,3 +50,10 @@ def report(session):
     session.run("coverage", "combine")
     session.run("coverage", "html")
     session.run("coverage", "report", "--fail-under", "86")
+
+
+@nox.session(python="python3.10")
+def docs(session):
+    session.install("poetry")
+    session.run("poetry", "install", "--with=doc")
+    session.run("mkdocs", "build")
