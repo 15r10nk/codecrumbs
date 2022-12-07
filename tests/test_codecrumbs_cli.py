@@ -56,7 +56,9 @@ def compare(env):
     def w(script_content, *args):
 
         # generate patch file
+        env.run("git", "init")
         env.write("script.py", script_content)
+        env.run("git", "add", "script.py")
 
         original_output = env.run(
             sys.executable, "script.py", *args, capture_output=True
@@ -76,6 +78,7 @@ def compare(env):
 
         # direct fix
         env.write("script.py", script_content)
+        env.run("git", "add", "script.py")
 
         assert (
             env.run_codecrumbs(
@@ -83,6 +86,7 @@ def compare(env):
             ).stdout.decode()
             == original_output
         )
+        env.run("git", "add", "script.py")
 
         assert patched_script == env.read("script.py") != script_content
 

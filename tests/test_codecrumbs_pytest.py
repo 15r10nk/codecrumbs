@@ -30,6 +30,9 @@ def test_one(record_changes):
     """,
         encoding="utf8",
     )
+    pytester.run("git", "init")
+    pytester.run("git", "add", file.name)
+
     result = testdir.runpytest("--codecrumbs-fix")
     source = file.read_text()
     assert "print(x.b)" in source

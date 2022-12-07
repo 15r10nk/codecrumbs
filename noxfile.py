@@ -1,6 +1,7 @@
 import nox
 
-nox.options.sessions = ["clean", "test", "report", "docs"]
+nox.options.sessions = ["mypy", "clean", "test", "report", "docs"]
+nox.options.reuse_existing_virtualenvs = True
 
 
 @nox.session(python="python3.10")
@@ -16,19 +17,9 @@ def mypy(session):
     session.run("mypy", "src", "tests")
 
 
-@nox.session(python="python3.11")
-def py311(session):
-    session.install("poetry")
-    session.run("poetry", "install", "--with=dev")
-    session.run(
-        "pytest", "--assert=plain", "tests", "--doctest-modules", "src/codecrumbs"
-    )
-
-
-@nox.session(python=["3.8", "3.9", "3.10"])
+@nox.session(python=["3.8", "3.9", "3.10", "3.11"])
 def test(session):
-    session.install("poetry")
-    session.run("poetry", "install", "--with=dev")
+    session.run_always("poetry", "install", "--with=dev", external=True)
     session.run(
         "coverage",
         "run",
@@ -41,6 +32,7 @@ def test(session):
         "src/codecrumbs",
         "tests",
         "--assert=plain",
+        *session.posargs
     )
 
 

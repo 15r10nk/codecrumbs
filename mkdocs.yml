@@ -6,12 +6,14 @@ watch:
 - src/codecrumbs
 
 theme:
-  name: readthedocs
+  name: material
 
 nav:
 - Introduction: introduction.md
 - Workflow: workflow.md
+- cli: cli.md
 - Reference: reference.md
+
     # TODO: add documentation again
     #  - Documentation: documentation.md
 
@@ -21,6 +23,9 @@ markdown_extensions:
     anchor_linenums: true
 - pymdownx.inlinehilite
 - pymdownx.snippets
+- pymdownx.superfences
+- admonition
+- pymdownx.details
 - pymdownx.superfences
 
 plugins:

@@ -3,6 +3,7 @@ from __future__ import annotations
 import ast
 import contextlib
 import pathlib
+import subprocess as sp
 from collections import defaultdict
 from dataclasses import dataclass
 
@@ -193,6 +194,42 @@ class ChangeRecorder:
 
     def fix_all(self):
         for file in self._source_files.values():
+            filename = file.filename
+            if (
+                sp.run(
+                    ["git", "ls-files", "--error-unmatch", str(filename.name)],
+                    cwd=filename.parent,
+                    stdout=sp.DEVNULL,
+                ).returncode
+                != 0
+            ):
+                print(
+                    f"{filename}: skip fixing, because the file is not in a git repository"
+                )
+                continue
+
+            if (
+                sp.run(
+                    ["git", "diff", "--quiet", str(filename.name)],
+                    cwd=filename.parent,
+                    stdout=sp.DEVNULL,
+                ).returncode
+                != 0
+            ):
+                print(f"{filename}: skip fixing, because the file has unstaged changes")
+                continue
+
+            if (
+                sp.run(
+                    ["git", "check-ignore", "--quiet", str(filename.name)],
+                    cwd=filename.parent,
+                    stdout=sp.DEVNULL,
+                ).returncode
+                == 0
+            ):
+                print(f"{filename}: skip fixing, because the file is ignored by git")
+                continue
+
             file.rewrite()
 
     def generate_patchfile(self, filename):
