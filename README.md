@@ -6,6 +6,8 @@ Codecrumbs is a Python library (and pytest plugin) for source code refactoring a
 It allows you to change the API of your library and to propagate this changes to every one who uses your library.
 
 
+More can be found in the [documentation](https://15r10nk.github.io/codecrumbs/introduction/).
+
 ## Example
 
 Simple example which renames one argument:
