@@ -1,3 +1,6 @@
+"""
+PYTEST_DONT_REWRITE
+"""
 import ast
 import sys
 

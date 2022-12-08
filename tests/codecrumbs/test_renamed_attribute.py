@@ -20,7 +20,9 @@ def test_preserve_signature():
             never_called()
 
     with pytest.warns(DeprecationWarning):
-        assert inspect.signature(Test.a) == inspect.signature(Test.b)
+        signature_a = inspect.signature(Test.a)
+        signature_b = inspect.signature(Test.b)
+        assert signature_a == signature_b
 
 
 def test_renamed_attribute(test_rewrite):
@@ -30,9 +32,19 @@ def test_renamed_attribute(test_rewrite):
         def __init__(self):
             self.new = 1
 
+        @property
+        def q(self):
+            return self
+
     e = Example()
     test_rewrite(
         "assert e.old == 1", "assert e.new == 1", warning=replace_warning("old", "new")
+    )
+
+    test_rewrite(
+        "assert e.q.old == 1",
+        "assert e.q.new == 1",
+        warning=replace_warning("old", "new"),
     )
 
     e.new = 2
@@ -122,11 +134,21 @@ def test_renamed_method(test_rewrite):
         def new(self):
             return 1
 
+        @property
+        def q(self):
+            return self
+
     e = Example()
 
     assert e.new() == 1
     test_rewrite(
         "assert e.old()==1", "assert e.new()==1", warning=replace_warning("old", "new")
+    )
+
+    test_rewrite(
+        "assert e.q.old()==1",
+        "assert e.q.new()==1",
+        warning=replace_warning("old", "new"),
     )
 
 

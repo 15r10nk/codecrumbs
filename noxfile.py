@@ -31,7 +31,6 @@ def test(session):
         "--doctest-modules",
         "src/codecrumbs",
         "tests",
-        "--assert=plain",
         *session.posargs
     )
 

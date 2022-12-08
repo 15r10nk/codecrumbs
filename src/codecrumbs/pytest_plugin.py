@@ -12,6 +12,18 @@ def pytest_addoption(parser):
     )
 
 
+def pytest_configure(config):
+
+    if config.option.codecrumbs_fix:
+        import sys
+
+        # hack to disable the assertion rewriting
+        # I found no other way because the hook gets installed early
+        sys.meta_path = [
+            e for e in sys.meta_path if type(e).__name__ != "AssertionRewritingHook"
+        ]
+
+
 class Plugin:
     def __init__(self):
         self.change_recorder = ChangeRecorder()

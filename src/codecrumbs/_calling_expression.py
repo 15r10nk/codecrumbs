@@ -209,7 +209,7 @@ def calling_expression(back=1):
                     node.col_offset += col_offset
                     node.end_col_offset += col_offset
 
-    if sys.version_info >= (3, 11):  # pragma: nocov
+    if sys.version_info >= (3, 11):
         nodes = ast.parse(code)
         positions = list(frame.f_code.co_positions())
         code_index = frame.f_lasti // 2
