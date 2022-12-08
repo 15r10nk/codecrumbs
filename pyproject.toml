@@ -27,6 +27,8 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.8"
+executing = {version="^1.2.0", python=">=3.11"}
+asttokens = {version="^2.2.1", python=">=3.11"}
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.2.0"
@@ -46,3 +48,6 @@ codecrumbs = "codecrumbs.pytest_plugin"
 
 [tool.poetry.scripts]
 codecrumbs = "codecrumbs.__main__:main"
+
+[tool.pytest.ini_options]
+xfail_strict = true

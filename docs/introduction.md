@@ -22,13 +22,13 @@ codecrumbs requires Python *3.8*, *3.9* or *3.10*.
 
 ## Limitations
 
-* expressions inside assert statements can not be fixed if pytest is used.
 * expressions inside identical code blocks in the same line can not be fixed.
+    ```python
+    lambdas = (lambda a: x, lambda a: x)
+    lists = all(len(e) > 5 for e in l1) and all(len(e) > 5 for e in l2)
+    ```
 
-```python
-lambdas = (lambda a: x, lambda a: x)
-lists = all(len(e) > 5 for e in l1) and all(len(e) > 5 for e in l2)
-```
+* fixing deprecations inside doctests is currently not supported for python 3.11.
 
 I'm currently working on the migration to [executing](https://github.com/alexmojaki/executing).
 It will take some time, but I hope to remove some of these limitations.
