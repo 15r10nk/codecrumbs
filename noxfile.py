@@ -1,12 +1,12 @@
 import nox
 
-nox.options.sessions = ["mypy", "clean", "test", "report", "docs"]
+nox.options.sessions = ["clean", "test", "report", "docs"]
 nox.options.reuse_existing_virtualenvs = True
 
 
 @nox.session(python="python3.10")
 def clean(session):
-    session.install("coverage")
+    session.install("coverage[toml]")
     session.run("coverage", "erase")
 
 
@@ -21,13 +21,12 @@ def mypy(session):
 def test(session):
     session.run_always("poetry", "install", "--with=dev", external=True)
     session.run(
-        "coverage",
-        "run",
-        "--source=src,tests",
-        "--parallel-mode",
-        "--branch",
-        "-m",
         "pytest",
+        "--cov=src",
+        "--cov=tests",
+        "--cov=codecrumbs",
+        "--cov-append",
+        "--cov-branch",
         "--doctest-modules",
         "src/codecrumbs",
         "tests",
@@ -37,10 +36,10 @@ def test(session):
 
 @nox.session(python="python3.10")
 def report(session):
-    session.install("coverage")
-    session.run("coverage", "combine")
+    session.install("coverage[toml]")
+    # session.run("coverage", "combine")
     session.run("coverage", "html")
-    session.run("coverage", "report", "--fail-under", "86")
+    session.run("coverage", "report", "--fail-under", "92")
 
 
 @nox.session(python="python3.10")

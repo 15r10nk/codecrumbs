@@ -1,4 +1,5 @@
 from codecrumbs import argument_renamed
+from inline_snapshot import snapshot
 
 
 def test_argument_renamed_no_since():
@@ -10,10 +11,9 @@ def test_argument_renamed_no_since():
         """
         print(new)
 
-    assert (
-        test.__doc__
-        == "\nsome docu\n\n.. versionchanged:: <next>\n\n    parameter *old* was renamed to *new*\n"
-    ), test.__doc__
+    assert test.__doc__ == snapshot(
+        "\nsome docu\n\n.. versionchanged:: <next>\n\n    parameter *old* was renamed to *new*\n"
+    )
 
 
 def test_argument_renamed_since():
@@ -25,10 +25,9 @@ def test_argument_renamed_since():
         """
         print(new)
 
-    assert (
-        test.__doc__
-        == "\nsome docu\n\n.. versionchanged:: 5.0\n\n    parameter *old* was renamed to *new*\n"
-    ), test.__doc__
+    assert test.__doc__ == snapshot(
+        "\nsome docu\n\n.. versionchanged:: 5.0\n\n    parameter *old* was renamed to *new*\n"
+    )
 
 
 def test_version_sorting():
@@ -42,10 +41,9 @@ def test_version_sorting():
         """
         print(new)
 
-    assert (
-        test.__doc__
-        == "\nsome docu\n\n"
-        + ".. versionchanged:: 1.0\n\n    parameter *old1* was renamed to *new1*\n\n"
-        + ".. versionchanged:: 2.0\n\n    parameter *old3* was renamed to *new3*\n\n"
-        + ".. versionchanged:: 3.0\n\n    parameter *old2* was renamed to *new2*\n"
-    ), test.__doc__
+    assert test.__doc__ == snapshot(
+        "\nsome docu\n\n"
+        ".. versionchanged:: 1.0\n\n    parameter *old1* was renamed to *new1*\n\n"
+        ".. versionchanged:: 2.0\n\n    parameter *old3* was renamed to *new3*\n\n"
+        ".. versionchanged:: 3.0\n\n    parameter *old2* was renamed to *new2*\n"
+    )

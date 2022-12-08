@@ -33,14 +33,6 @@ class FunctionWrapper:
         self.deprecations: list[DeprecationRenaming] = []
         self.since_version: str | None = None
 
-    def _set_since(self, version):
-        self.since_version = version
-        return self
-
-    @property
-    def reverse_old_params(self):
-        return {v: k for k, v in self.items()}
-
     def __get__(self, obj, cls):
         if obj is not None:
             return partial(self, obj)

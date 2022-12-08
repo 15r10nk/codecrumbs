@@ -12,11 +12,12 @@ import pytest
 def env(tmp_path):
     class Env:
         def run(self, *args, **kwargs):
+
             result = sp.run(args, cwd=tmp_path, **kwargs)
             if result.returncode != 0:
+                print("fail>", *args)
                 print(result.stdout.decode())
                 print(result.stderr.decode())
-                assert False
             return result
 
         @contextmanager
@@ -60,16 +61,20 @@ def compare(env):
         env.write("script.py", script_content)
         env.run("git", "add", "script.py")
 
-        original_output = env.run(
-            sys.executable, "script.py", *args, capture_output=True
-        ).stdout.decode()
+        def result_equal(result_a, result_b):
+            assert result_a.stdout.decode() == result_b.stdout.decode()
+            # assert result_a.stderr.decode() == result_b.stderr.decode()
+            assert result_a.returncode == result_b.returncode
 
-        assert (
-            env.run_codecrumbs(
-                "run", "script.py", *args, capture_output=True
-            ).stdout.decode()
-            == original_output
+        original_result = env.run(
+            sys.executable, "script.py", *args, capture_output=True
         )
+
+        codecrumbs_result = env.run_codecrumbs(
+            "run", "script.py", *args, capture_output=True
+        )
+
+        result_equal(codecrumbs_result, original_result)
 
         with env.in_cwd():
             patch.fromfile("script_codecrumbs.patch").apply()
@@ -80,22 +85,19 @@ def compare(env):
         env.write("script.py", script_content)
         env.run("git", "add", "script.py")
 
-        assert (
-            env.run_codecrumbs(
-                "run", "--fix", "--", "script.py", *args, capture_output=True
-            ).stdout.decode()
-            == original_output
+        codecrumbs_fix_result = env.run_codecrumbs(
+            "run", "--fix", "--", "script.py", *args, capture_output=True
         )
+        result_equal(codecrumbs_fix_result, original_result)
+
         env.run("git", "add", "script.py")
 
         assert patched_script == env.read("script.py") != script_content
 
         # run again and compare output
-        second_output = env.run(
-            sys.executable, "script.py", *args, capture_output=True
-        ).stdout.decode()
+        second_result = env.run(sys.executable, "script.py", *args, capture_output=True)
 
-        assert second_output == original_output
+        result_equal(second_result, original_result)
 
         assert patched_script == env.read("script.py")
 
@@ -112,6 +114,23 @@ def func(new):
     print(new)
 
 func(old="hello")
+
+"""
+    )
+
+
+def test_run_hello_world(compare):
+    compare(
+        """
+import codecrumbs
+
+@codecrumbs.argument_renamed("old","new")
+def func(new):
+    print(new)
+
+func(old="hello")
+
+assert 5==4
 
 """
     )

@@ -5,30 +5,6 @@ from ._calling_expression import calling_expression
 from ._rewrite_code import replace
 
 
-class start_of:
-    def __init__(self, node):
-        self.filename = node.filename
-        self.lineno = node.lineno
-        self.col_offset = node.col_offset
-
-
-class end_of:
-    def __init__(self, node):
-        self.filename = node.filename
-        self.lineno = node.end_lineno
-        self.col_offset = node.end_col_offset
-
-
-class Range:
-    def __init__(self, start, end):
-        assert start.filename == end.filename
-        self.filename = start.filename
-        self.lineno = start.lineno
-        self.end_lineno = end.lineno
-        self.col_offset = start.col_offset
-        self.end_col_offset = end.col_offset
-
-
 class FixIndex:
     def __init__(self):
         self.index = set()
@@ -52,8 +28,8 @@ class ClassObjectProperty:
             return self._func(obj, on_class=False)
 
 
-class renamed_attribute:
-    _class_doc = """
+def renamed_attribute(new_name, *, since=None):
+    """
     Specifies that all read and write accesses of an attribute should be renamed.
 
     Usage:
@@ -121,10 +97,14 @@ class renamed_attribute:
 
     """
 
-    def __init__(self, newname):
+    return RenameAttribute(new_name, since)
+
+
+class RenameAttribute:
+    def __init__(self, newname, since):
         self.new_name = newname
         self.fixes = FixIndex()
-        self.since_version = None
+        self.since_version = since
 
     def __set_name__(self, owner, name):
         self._owner = owner

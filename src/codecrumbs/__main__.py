@@ -48,9 +48,6 @@ def main():
 
         exit(0)
 
-    else:
-        print("refactor me")
-
 
 if __name__ == "__main__":
     main()
