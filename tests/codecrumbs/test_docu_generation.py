@@ -1,5 +1,5 @@
 from codecrumbs import argument_renamed
-from inline_snapshot import snapshot
+from inline_snapshot import snapshot  # type: ignore
 
 
 def test_argument_renamed_no_since():

@@ -119,23 +119,6 @@ func(old="hello")
     )
 
 
-def test_run_hello_world(compare):
-    compare(
-        """
-import codecrumbs
-
-@codecrumbs.argument_renamed("old","new")
-def func(new):
-    print(new)
-
-func(old="hello")
-
-assert 5==4
-
-"""
-    )
-
-
 @pytest.mark.skip("we are not perfect")
 def test_run_script(compare):
 
