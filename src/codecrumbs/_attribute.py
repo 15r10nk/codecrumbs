@@ -16,18 +16,6 @@ class FixIndex:
         return first
 
 
-class ClassObjectProperty:
-    def __init__(self, func):
-        self._func = func
-
-    def __get__(self, obj, objtype=None):
-
-        if obj is None:
-            return self._func(objtype, on_class=True)
-        else:
-            return self._func(obj, on_class=False)
-
-
 def attribute_renamed(new_name, *, since=None):
     """
     Specifies that all read and write accesses of an attribute should be renamed.
@@ -170,12 +158,8 @@ class RenameAttribute:
 
         return getattr(obj, self.new_name)
 
-    @ClassObjectProperty
     def __doc__(self, on_class):
-
-        if on_class:
-            return self._class_doc
-        elif getattr(getattr(self._owner, self.new_name), "__doc__", "").strip():
+        if getattr(getattr(self._owner, self.new_name), "__doc__", "").strip():
             since = self.since_version or "<next>"
             return f".. deprecated:: {since} this attribute was renamed to :attr:`{self.new_name}`"
 
