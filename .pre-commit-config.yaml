@@ -58,6 +58,7 @@ repos:
     args: [--autofix, --indent, '2']
   - id: pretty-format-toml
     args: [--autofix]
+    exclude: ^poetry.lock$
 
 - hooks:
   - id: commitizen

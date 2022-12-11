@@ -1,5 +1,6 @@
 import inspect
 import io
+import sys
 import warnings
 from contextlib import redirect_stdout
 
@@ -79,21 +80,37 @@ def func():
 doctest.testfile(__file__,module_relative=False,globs=locals())
 '''
 
-
+# a complicated way to say that doctest are not supported for python 3.11
 @pytest.fixture(
-    params=["{}", "{}\n", "{}\r\n", "{}\r", "\n\n{}# comment\n", doctest_template]
+    params=[
+        pytest.param(
+            (t, c),
+            id=f"{t.__name__}-{c_id}",
+            marks=(
+                pytest.mark.xfail
+                if sys.version_info >= (3, 11) and c_id == "docstring" and t is run_test
+                else []
+            ),
+        )
+        for t in (run_test, run_second_test)
+        for (c, c_id) in [
+            ("{}", "plain"),
+            ("{}\n", "newline"),
+            ("{}\r\n", "windows"),
+            ("{}\r", "r-only"),
+            ("\n\n{}# comment\n", "comment"),
+            (doctest_template, "docstring"),
+        ]
+    ]
 )
-def code_formatting(request):
-    return request.param
-
-
-@pytest.fixture(params=[run_test, run_second_test])
-def test_rewrite(request, tmp_path, code_formatting):
+def test_rewrite(request, tmp_path):
     """
     fixture which return a function which can be used to check the refactoring of some sourcecode in the current scope
 
 
     """
+
+    run_test, code_formatting = request.param
 
     idx = 0
 
@@ -132,9 +149,9 @@ def test_rewrite(request, tmp_path, code_formatting):
             output = ""
 
         frame = inspect.currentframe().f_back
-        filename = tmp_path / f"{request.param.__name__}_{idx}.py"
+        filename = tmp_path / f"{run_test.__name__}_{idx}.py"
         idx += 1
-        request.param(
+        run_test(
             old_code,
             new_code,
             warning=warning,
