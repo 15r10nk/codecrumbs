@@ -3,4 +3,4 @@
 
 ::: codecrumbs.argument_renamed
 
-::: codecrumbs.renamed_attribute
+::: codecrumbs.attribute_renamed

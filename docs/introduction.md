@@ -55,7 +55,7 @@ import codecrumbs
 
 class Example:
     # cfgmod was renamed to config_module
-    cfgmod = codecrumbs.renamed_attribute("config_module")
+    cfgmod = codecrumbs.attribute_renamed("config_module")
 
     def config_module(self, some_arg):
         print("some code", some_arg)

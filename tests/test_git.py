@@ -3,10 +3,10 @@ def test_git_safety_check(pytester):
     file = pytester.makepyfile("test_one")
 
     source = """
-from codecrumbs import renamed_attribute
+from codecrumbs import attribute_renamed
 
 class A:
-    a=renamed_attribute("b")
+    a=attribute_renamed("b")
 
 
 def test_one(record_changes):

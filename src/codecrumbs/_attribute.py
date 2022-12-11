@@ -28,7 +28,7 @@ class ClassObjectProperty:
             return self._func(obj, on_class=False)
 
 
-def renamed_attribute(new_name, *, since=None):
+def attribute_renamed(new_name, *, since=None):
     """
     Specifies that all read and write accesses of an attribute should be renamed.
 
@@ -36,8 +36,8 @@ def renamed_attribute(new_name, *, since=None):
 
     ```pycon
     >>> class Point:
-    ...     data_x = renamed_attribute("x")
-    ...     data_y = renamed_attribute("y")
+    ...     data_x = attribute_renamed("x")
+    ...     data_y = attribute_renamed("y")
     ...     def __init__(self, x, y):
     ...         self.data_x = x
     ...         self.data_y = y
@@ -57,7 +57,7 @@ def renamed_attribute(new_name, *, since=None):
 
     ```pycon
     >>> class Test:
-    ...     old_attribute = renamed_attribute("new_attribute")
+    ...     old_attribute = attribute_renamed("new_attribute")
     ...
     >>> t = Test()
     >>> assert not hasattr(t, "old_attribute")
@@ -69,7 +69,7 @@ def renamed_attribute(new_name, *, since=None):
 
     ```pycon
     >>> class Test:
-    ...     old_attribute = renamed_attribute("new_attribute")
+    ...     old_attribute = attribute_renamed("new_attribute")
     ...     new_attribute = 5
     ...
     >>> Test.old_attribute
@@ -82,7 +82,7 @@ def renamed_attribute(new_name, *, since=None):
 
     ```pycon
     >>> class Test:
-    ...     old_method = renamed_attribute("new_method")
+    ...     old_method = attribute_renamed("new_method")
     ...
     ...     def new_method(self):
     ...         return 5

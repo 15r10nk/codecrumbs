@@ -22,7 +22,7 @@ You can do this by changing the name and add an annotation which redirects the c
 
 ```python
 class Example:
-    old = codecrumbs.renamed_attribute("new")
+    old = codecrumbs.attribute_renamed("new")
 
     def new(self):
         print("method called")
@@ -41,7 +41,7 @@ Therefor it has to be defined during the release process.
 The example might then look like this:
 ```python
 class Example:
-    old = codecrumbs.renamed_attribute("new", since="2.1.0")
+    old = codecrumbs.attribute_renamed("new", since="2.1.0")
 
     def new(self):
         print("method called")

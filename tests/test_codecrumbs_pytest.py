@@ -17,10 +17,10 @@ def test_codecrumbs_fix(pytester):
 
     file.write_text(
         """
-from codecrumbs import renamed_attribute
+from codecrumbs import attribute_renamed
 
 class A:
-    a=renamed_attribute("b")
+    a=attribute_renamed("b")
 
 
 def test_one(record_changes):
