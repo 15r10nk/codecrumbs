@@ -178,19 +178,3 @@ def argument_renamed(old_name: str, new_name: str, *, since=None):
         return wrapper
 
     return w
-
-
-def argument_keyword_only(name, *, since=None):
-    raise NotImplemented
-
-
-def argument_positional_only(name, *, since=None):
-    raise NotImplemented
-
-
-def argument_removed_default(name, *, since=None):
-    raise NotImplemented
-
-
-def argument_removed(name, *, since=None):
-    raise NotImplemented

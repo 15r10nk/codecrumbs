@@ -167,20 +167,3 @@ class RenameAttribute:
         self.__generic_fix()
 
         delattr(obj, self.new_name)
-
-
-def inline_source(since_version=None):
-    raise NotImplemented
-
-    def w(f):
-        def r(*a, **ka):
-            warnings.warn(
-                f"usage of this function is deprecated and should be replaced with the defined implementation (can be fixed with codecrumbs)",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-            f(*a, **ka)
-
-        return r
-
-    return w
