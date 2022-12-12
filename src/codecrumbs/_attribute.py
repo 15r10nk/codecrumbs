@@ -158,11 +158,6 @@ class RenameAttribute:
 
         return getattr(obj, self.new_name)
 
-    def __doc__(self, on_class):
-        if getattr(getattr(self._owner, self.new_name), "__doc__", "").strip():
-            since = self.since_version or "<next>"
-            return f".. deprecated:: {since} this attribute was renamed to :attr:`{self.new_name}`"
-
     def __set__(self, obj, value):
         self.__generic_fix()
 

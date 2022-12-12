@@ -4,6 +4,17 @@ from inline_snapshot import snapshot  # type: ignore
 from ..helper import never_called
 
 
+def test_argument_renamed_no_doc():
+    @argument_renamed("old", "new")
+    def test1(new):
+        never_called(new)
+
+    def test2(new):
+        never_called(new)
+
+    assert test1.__doc__ == test2.__doc__
+
+
 def test_argument_renamed_no_since():
     @argument_renamed("old", "new")
     def test(new):

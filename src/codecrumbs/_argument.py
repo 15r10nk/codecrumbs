@@ -125,7 +125,7 @@ class FunctionWrapper:
 
     @property
     def __doc__(self):
-        doc = self.f.__doc__ or ""
+        doc = self.f.__doc__
         if doc:
             doc = textwrap.dedent(doc).rstrip() + "\n"
             for deprecation in sorted(self.deprecations, key=lambda d: d.since or ""):
