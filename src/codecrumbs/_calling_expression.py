@@ -13,10 +13,10 @@ from types import CodeType
 if False:
     debug_log = open("/tmp/debug.log", "w")
 
-    def debug(*args):  # pragma no cover
+    def debug(*args):
         print(*args, file=debug_log)
 
-    def debug_code(code):  # pragma no cover
+    def debug_code(code):
         import io
 
         s = io.StringIO()
@@ -34,7 +34,7 @@ _rewrite_hooks = {"": (lambda ast, source: None)}
 # because we want to support the rewritten asserts in tests
 try:
     from _pytest.assertion.rewrite import rewrite_asserts
-except:  # pragma no cover
+except:  # pragma: no cover
     pass
 else:
 
@@ -100,7 +100,7 @@ class lookup_result:
 
     @cached_property
     def expr(self):
-        for node in ast.walk(self._orig_ast):
+        for node in ast.walk(self._orig_ast):  # pragma: no branch
             if node.ast_index == self.ast_index:
                 return copy.deepcopy(node)
 
@@ -310,7 +310,7 @@ def _match_consts(consts_a, consts_b):
 
     assert not codes_a
     if codes_a:
-        return
+        return  # pragma: no cover
 
     for code_b, codes_a in mapping.items():
         if len(codes_a) == 1:
