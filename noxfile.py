@@ -36,7 +36,10 @@ def test(session):
 def report(session):
     session.run_always("poetry", "install", "--with=dev", external=True)
     session.env["TOP"] = str(Path(__file__).parent)
-    session.run("coverage", "combine")
+    try:
+        session.run("coverage", "combine")
+    except:
+        pass
     session.run("coverage", "html")
     session.run("coverage", "report", "--fail-under", "94")
 

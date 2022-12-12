@@ -48,6 +48,9 @@ def main():
 
         exit(0)
 
+    else:
+        assert False, f"{args.subcommand} is not implemented"
+
 
 if __name__ == "__main__":
     main()
