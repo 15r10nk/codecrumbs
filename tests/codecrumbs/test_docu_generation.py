@@ -1,6 +1,8 @@
 from codecrumbs import argument_renamed
 from inline_snapshot import snapshot  # type: ignore
 
+from ..helper import never_called
+
 
 def test_argument_renamed_no_since():
     @argument_renamed("old", "new")
@@ -9,7 +11,7 @@ def test_argument_renamed_no_since():
         some docu
 
         """
-        print(new)
+        never_called(new)
 
     assert test.__doc__ == snapshot(
         "\nsome docu\n\n.. versionchanged:: <next>\n\n    parameter *old* was renamed to *new*\n"
@@ -23,7 +25,7 @@ def test_argument_renamed_since():
         some docu
 
         """
-        print(new)
+        never_called(new)
 
     assert test.__doc__ == snapshot(
         "\nsome docu\n\n.. versionchanged:: 5.0\n\n    parameter *old* was renamed to *new*\n"
@@ -39,7 +41,7 @@ def test_version_sorting():
         some docu
 
         """
-        print(new)
+        never_called(new1, new2, new3)
 
     assert test.__doc__ == snapshot(
         "\nsome docu\n\n"

@@ -3,7 +3,7 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.coverage.report]
-exclude_lines = ["pragma: no cover","assert False[,^]"]
+exclude_lines = ["pragma: no cover","assert False[,^]","never_called\\("]
 
 [tool.coverage.run]
 source = ["src","tests","codecrumbs"]
