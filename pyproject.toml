@@ -3,9 +3,10 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.coverage.run]
-source = ["src","tests"]
+source = ["src","tests","codecrumbs"]
 parallel = true
 branch = true
+data_file = "$TOP/.coverage"
 
 [tool.poetry]
 name = "codecrumbs"
@@ -37,6 +38,7 @@ coverage = {extras = ["toml"], version = "^6.5.0"}
 patch = "^1.16"
 mypy = "^0.990"
 pytest-cov = "^4.0.0"
+coverage-enable-subprocess = "^1.0"
 
 [tool.poetry.group.doc.dependencies]
 mkdocs = "^1.4.2"
