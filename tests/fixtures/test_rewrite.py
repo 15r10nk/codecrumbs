@@ -5,7 +5,7 @@ import warnings
 from contextlib import redirect_stdout
 
 import pytest
-from codecrumbs._rewrite_code import rewrite
+from codecrumbs._rewrite_code import ChangeRecorder
 
 
 def run_test(old_code, new_code, *, warning=None, output="", filename, frame):
@@ -20,26 +20,27 @@ def run_test(old_code, new_code, *, warning=None, output="", filename, frame):
     l = dict(frame.f_locals)
 
     first_output = io.StringIO()
-    with warnings.catch_warnings(record=True) as record:
+    with ChangeRecorder().activate() as changes:
+        with warnings.catch_warnings(record=True) as record:
 
-        with redirect_stdout(first_output):
-            code = compile(filename.read_bytes(), str(filename), "exec")
-            d["__file__"] = str(filename)
-            exec(code, d, l)
-        print(first_output.getvalue())
+            with redirect_stdout(first_output):
+                code = compile(filename.read_bytes(), str(filename), "exec")
+                d["__file__"] = str(filename)
+                exec(code, d, l)
+            print(first_output.getvalue())
 
-        assert first_output.getvalue() == output, (first_output.getvalue(), output)
+            assert first_output.getvalue() == output, (first_output.getvalue(), output)
 
-    if warning is None:
-        assert not record, record
-    else:
-        assert (
-            len(record) == 1
-            and record[0].category is DeprecationWarning
-            and str(record[0].message) == warning
-        ), record
+        if warning is None:
+            assert not record, record
+        else:
+            assert (
+                len(record) == 1
+                and record[0].category is DeprecationWarning
+                and str(record[0].message) == warning
+            ), record
 
-    rewrite(filename)
+    changes.fix_all(check_git=False)
 
     print("new code:")
     print(filename.read_text())

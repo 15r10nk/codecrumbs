@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import ast
 import contextlib
 import pathlib
 import subprocess as sp
@@ -44,8 +43,6 @@ class Change:
         type(self)._next_change_id += 1
 
     def replace(self, node, new_contend):
-        if isinstance(new_contend, ast.AST):
-            new_contend = ast.unparse(new_contend)
 
         # remove this
         if not isinstance(new_contend, str):
@@ -56,19 +53,7 @@ class Change:
             node.end if hasattr(node, "end") else (node.end_lineno, node.end_col_offset)
         )
 
-        self._replace(
-            node.filename,
-            start,
-            end,
-            new_contend,
-        )
-
-    def _replace(self, filename, start, end, new_contend):
-
-        if isinstance(new_contend, ast.AST):
-            new_contend = ast.unparse(new_contend)
-
-        get_source_file(filename).replacements.append(
+        get_source_file(node.filename).replacements.append(
             Replacement(
                 start=start, end=end, text=new_contend, change_id=self.change_id
             )
@@ -159,19 +144,6 @@ def replace(node, new_contend):
     Change().replace(node, new_contend)
 
 
-def insert_before(node, new_contend):
-    if isinstance(new_contend, ast.AST):
-        new_contend = ast.unparse(new_contend)
-    new_contend += "\n"
-
-    _replace(
-        node.filename,
-        (node.lineno, node.col_offset),
-        (node.lineno, node.col_offset),
-        new_contend,
-    )
-
-
 class ChangeRecorder:
     current: ChangeRecorder | None = None
 
@@ -183,7 +155,7 @@ class ChangeRecorder:
     def activate(self):
         old_recorder = ChangeRecorder.current
         ChangeRecorder.current = self
-        yield
+        yield self
         ChangeRecorder.current = old_recorder
 
     def num_fixes(self):
@@ -192,43 +164,48 @@ class ChangeRecorder:
             changes.update(change.change_id for change in file.replacements)
         return len(changes)
 
-    def fix_all(self):
+    def fix_all(self, *, check_git=True):
         for file in self._source_files.values():
             filename = file.filename
-            if (
-                sp.run(
-                    ["git", "ls-files", "--error-unmatch", str(filename.name)],
-                    cwd=filename.parent,
-                    stdout=sp.DEVNULL,
-                ).returncode
-                != 0
-            ):
-                print(
-                    f"{filename}: skip fixing, because the file is not in a git repository"
-                )
-                continue
+            if check_git:
+                if (
+                    sp.run(
+                        ["git", "ls-files", "--error-unmatch", str(filename.name)],
+                        cwd=filename.parent,
+                        stdout=sp.DEVNULL,
+                    ).returncode
+                    != 0
+                ):
+                    print(
+                        f"{filename}: skip fixing, because the file is not in a git repository"
+                    )
+                    continue
 
-            if (
-                sp.run(
-                    ["git", "diff", "--quiet", str(filename.name)],
-                    cwd=filename.parent,
-                    stdout=sp.DEVNULL,
-                ).returncode
-                != 0
-            ):
-                print(f"{filename}: skip fixing, because the file has unstaged changes")
-                continue
+                if (
+                    sp.run(
+                        ["git", "diff", "--quiet", str(filename.name)],
+                        cwd=filename.parent,
+                        stdout=sp.DEVNULL,
+                    ).returncode
+                    != 0
+                ):
+                    print(
+                        f"{filename}: skip fixing, because the file has unstaged changes"
+                    )
+                    continue
 
-            if (
-                sp.run(
-                    ["git", "check-ignore", "--quiet", str(filename.name)],
-                    cwd=filename.parent,
-                    stdout=sp.DEVNULL,
-                ).returncode
-                == 0
-            ):
-                print(f"{filename}: skip fixing, because the file is ignored by git")
-                continue
+                if (
+                    sp.run(
+                        ["git", "check-ignore", "--quiet", str(filename.name)],
+                        cwd=filename.parent,
+                        stdout=sp.DEVNULL,
+                    ).returncode
+                    == 0
+                ):
+                    print(
+                        f"{filename}: skip fixing, because the file is ignored by git"
+                    )
+                    continue
 
             file.rewrite()
 
@@ -241,12 +218,6 @@ class ChangeRecorder:
         for file in self._source_files.values():
             if is_relative_to(file.filename, basedir):
                 yield from file.generate_patch(basedir)
-
-    def dump(self):
-        for file in self._source_files.values():
-            print("file:", file.filename)
-            for change in file.replacements:
-                print("  change:", change)
 
 
 global_recorder = ChangeRecorder()
@@ -274,13 +245,3 @@ def code_stream(source):
             yield (p_line, p_col), idx, c
             p_col += 1
         idx += 1
-
-
-def rewrite(filename=None):
-
-    if filename is None:
-        for file in ChangeRecorder.current._source_files.values:
-            file.rewrite()
-    else:
-        if filename in ChangeRecorder.current._source_files:
-            ChangeRecorder.current._source_files[filename].rewrite()
