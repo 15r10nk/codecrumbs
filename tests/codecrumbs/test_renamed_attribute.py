@@ -1,3 +1,5 @@
+import sys
+
 import pytest
 from codecrumbs import argument_renamed
 from codecrumbs import attribute_renamed
@@ -23,6 +25,20 @@ def test_preserve_signature():
         signature_a = inspect.signature(Test.a)
         signature_b = inspect.signature(Test.b)
         assert signature_a == signature_b
+
+
+import contextlib
+
+
+@contextlib.contextmanager
+def not_with_old_algo():
+    if sys.version_info >= (3, 11):
+        yield
+    else:
+        try:
+            yield
+        except AttributeError:
+            pass
 
 
 def test_attribute_renamed(test_rewrite):
@@ -52,13 +68,15 @@ def test_attribute_renamed(test_rewrite):
         "assert e.old == 2", "assert e.new == 2", warning=replace_warning("old", "new")
     )
 
-    test_rewrite("e.old = 3", "e.new = 3", warning=replace_warning("old", "new"))
+    with not_with_old_algo():
+        test_rewrite("e.old = 3", "e.new = 3", warning=replace_warning("old", "new"))
 
     test_rewrite(
         "assert e.old == 3", "assert e.new == 3", warning=replace_warning("old", "new")
     )
 
-    test_rewrite("del e.old", "del e.new", warning=replace_warning("old", "new"))
+    with not_with_old_algo():
+        test_rewrite("del e.old", "del e.new", warning=replace_warning("old", "new"))
 
 
 def test_renamed_hasattr_getattr(test_rewrite):

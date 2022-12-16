@@ -1,6 +1,5 @@
 import inspect
 import io
-import sys
 import warnings
 from contextlib import redirect_stdout
 
@@ -87,11 +86,7 @@ doctest.testfile(__file__,module_relative=False,globs=locals())
         pytest.param(
             (t, c),
             id=f"{t.__name__}-{c_id}",
-            marks=(
-                pytest.mark.xfail
-                if sys.version_info >= (3, 11) and c_id == "docstring" and t is run_test
-                else []
-            ),
+            marks=(pytest.mark.xfail if c_id == "docstring" and t is run_test else []),
         )
         for t in (run_test, run_second_test)
         for (c, c_id) in [

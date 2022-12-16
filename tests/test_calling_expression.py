@@ -5,15 +5,9 @@ import ast
 import sys
 
 import pytest
-from codecrumbs._calling_expression import AstStructureError
 from codecrumbs._calling_expression import calling_expression
 
 
-@pytest.mark.xfail(
-    sys.version_info[:2] < (3, 11),
-    raises=AstStructureError,
-    reason="we can not get the functions if we have two expressions which compile down to the same code object",
-)
 def test_lambda_problem():
     [lambda: never_called(), lambda: never_called()]
 
@@ -74,6 +68,9 @@ def test_add():
     f + 1
 
 
+@pytest.mark.xfail(
+    sys.version_info < (3, 11), reason="iadd does not work with old executing algo"
+)
 def test_iadd():
     class foo:
         def __iadd__(self, other):
