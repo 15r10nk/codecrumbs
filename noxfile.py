@@ -20,7 +20,7 @@ def mypy(session):
     session.run("mypy", "src", "tests")
 
 
-@nox.session(python=["3.9", "3.10", "3.11"])
+@nox.session(python=["3.8", "3.9", "3.10", "3.11"])
 def test(session):
     session.run_always("poetry", "install", "--with=dev", external=True)
     session.env["COVERAGE_PROCESS_START"] = str(
