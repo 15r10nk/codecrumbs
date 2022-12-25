@@ -1,5 +1,5 @@
 from ._argument import argument_renamed
-from ._attribute import renamed_attribute
+from ._attribute import attribute_renamed
 
 
 __version__ = "0.1.0"

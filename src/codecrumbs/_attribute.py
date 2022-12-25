@@ -16,19 +16,7 @@ class FixIndex:
         return first
 
 
-class ClassObjectProperty:
-    def __init__(self, func):
-        self._func = func
-
-    def __get__(self, obj, objtype=None):
-
-        if obj is None:
-            return self._func(objtype, on_class=True)
-        else:
-            return self._func(obj, on_class=False)
-
-
-def renamed_attribute(new_name, *, since=None):
+def attribute_renamed(new_name, *, since=None):
     """
     Specifies that all read and write accesses of an attribute should be renamed.
 
@@ -36,8 +24,8 @@ def renamed_attribute(new_name, *, since=None):
 
     ```pycon
     >>> class Point:
-    ...     data_x = renamed_attribute("x")
-    ...     data_y = renamed_attribute("y")
+    ...     data_x = attribute_renamed("x")
+    ...     data_y = attribute_renamed("y")
     ...     def __init__(self, x, y):
     ...         self.data_x = x
     ...         self.data_y = y
@@ -57,7 +45,7 @@ def renamed_attribute(new_name, *, since=None):
 
     ```pycon
     >>> class Test:
-    ...     old_attribute = renamed_attribute("new_attribute")
+    ...     old_attribute = attribute_renamed("new_attribute")
     ...
     >>> t = Test()
     >>> assert not hasattr(t, "old_attribute")
@@ -69,7 +57,7 @@ def renamed_attribute(new_name, *, since=None):
 
     ```pycon
     >>> class Test:
-    ...     old_attribute = renamed_attribute("new_attribute")
+    ...     old_attribute = attribute_renamed("new_attribute")
     ...     new_attribute = 5
     ...
     >>> Test.old_attribute
@@ -82,7 +70,7 @@ def renamed_attribute(new_name, *, since=None):
 
     ```pycon
     >>> class Test:
-    ...     old_method = renamed_attribute("new_method")
+    ...     old_method = attribute_renamed("new_method")
     ...
     ...     def new_method(self):
     ...         return 5
@@ -170,15 +158,6 @@ class RenameAttribute:
 
         return getattr(obj, self.new_name)
 
-    @ClassObjectProperty
-    def __doc__(self, on_class):
-
-        if on_class:
-            return self._class_doc
-        elif getattr(getattr(self._owner, self.new_name), "__doc__", "").strip():
-            since = self.since_version or "<next>"
-            return f".. deprecated:: {since} this attribute was renamed to :attr:`{self.new_name}`"
-
     def __set__(self, obj, value):
         self.__generic_fix()
 
@@ -188,20 +167,3 @@ class RenameAttribute:
         self.__generic_fix()
 
         delattr(obj, self.new_name)
-
-
-def inline_source(since_version=None):
-    raise NotImplemented
-
-    def w(f):
-        def r(*a, **ka):
-            warnings.warn(
-                f"usage of this function is deprecated and should be replaced with the defined implementation (can be fixed with codecrumbs)",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-            f(*a, **ka)
-
-        return r
-
-    return w

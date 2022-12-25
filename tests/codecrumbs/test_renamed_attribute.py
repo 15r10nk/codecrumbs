@@ -1,6 +1,8 @@
+import sys
+
 import pytest
 from codecrumbs import argument_renamed
-from codecrumbs import renamed_attribute
+from codecrumbs import attribute_renamed
 
 from ..helper import never_called
 
@@ -14,7 +16,7 @@ import inspect
 
 def test_preserve_signature():
     class Test:
-        a = renamed_attribute("b")
+        a = attribute_renamed("b")
 
         def b(a, b):
             never_called()
@@ -25,9 +27,23 @@ def test_preserve_signature():
         assert signature_a == signature_b
 
 
-def test_renamed_attribute(test_rewrite):
+import contextlib
+
+
+@contextlib.contextmanager
+def not_with_old_algo():
+    if sys.version_info >= (3, 11):
+        yield
+    else:
+        try:
+            yield
+        except AttributeError:
+            pass
+
+
+def test_attribute_renamed(test_rewrite):
     class Example:
-        old = renamed_attribute("new")
+        old = attribute_renamed("new")
 
         def __init__(self):
             self.new = 1
@@ -52,19 +68,21 @@ def test_renamed_attribute(test_rewrite):
         "assert e.old == 2", "assert e.new == 2", warning=replace_warning("old", "new")
     )
 
-    test_rewrite("e.old = 3", "e.new = 3", warning=replace_warning("old", "new"))
+    with not_with_old_algo():
+        test_rewrite("e.old = 3", "e.new = 3", warning=replace_warning("old", "new"))
 
     test_rewrite(
         "assert e.old == 3", "assert e.new == 3", warning=replace_warning("old", "new")
     )
 
-    test_rewrite("del e.old", "del e.new", warning=replace_warning("old", "new"))
+    with not_with_old_algo():
+        test_rewrite("del e.old", "del e.new", warning=replace_warning("old", "new"))
 
 
 def test_renamed_hasattr_getattr(test_rewrite):
     class Example:
-        old = renamed_attribute("new")
-        no_attr = renamed_attribute("new_no_attr")
+        old = attribute_renamed("new")
+        no_attr = attribute_renamed("new_no_attr")
 
         def __init__(self):
             self.new = 1
@@ -129,7 +147,7 @@ def test_renamed_hasattr_getattr(test_rewrite):
 
 def test_renamed_method(test_rewrite):
     class Example:
-        old = renamed_attribute("new")
+        old = attribute_renamed("new")
 
         def new(self):
             return 1
@@ -154,7 +172,7 @@ def test_renamed_method(test_rewrite):
 
 def test_renamed_classmethod(test_rewrite):
     class Example:
-        old = renamed_attribute("new")
+        old = attribute_renamed("new")
 
         @classmethod
         def new(cls):
@@ -202,8 +220,8 @@ def test_parameter_renamed_method(test_rewrite):
 @pytest.mark.parametrize("obj", ["m", "ma[0]", "f()"])
 def test_rename_replacements(test_rewrite, obj):
     class Method:
-        old_method = renamed_attribute("new_method")
-        old_attr = renamed_attribute("new_attr")
+        old_method = attribute_renamed("new_method")
+        old_attr = attribute_renamed("new_attr")
 
         def new_method(self):
             print("new")

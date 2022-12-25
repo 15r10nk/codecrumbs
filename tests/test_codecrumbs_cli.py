@@ -1,54 +1,39 @@
-import os
-import subprocess as sp
 import sys
-from contextlib import contextmanager
-from pathlib import Path
 
 import patch  # type: ignore
 import pytest
 
 
 @pytest.fixture
-def env(tmp_path):
+def env(pytester):
     class Env:
         def run(self, *args, **kwargs):
-
-            result = sp.run(args, cwd=tmp_path, **kwargs)
-            if result.returncode != 0:
-                print("fail>", *args)
-                print(result.stdout.decode())
-                print(result.stderr.decode())
+            result = pytester.run(*args, **kwargs)
             return result
-
-        @contextmanager
-        def in_cwd(self):
-            pwd = str(Path().absolute())
-            os.chdir(str(tmp_path))
-            yield
-            os.chdir(pwd)
 
         def run_codecrumbs(self, *args, **kwargs):
             return self.run("codecrumbs", *args, **kwargs)
 
         def write(self, filename, content):
-            path = tmp_path / filename
+            path = pytester.path / filename
             path.parent.mkdir(exist_ok=True, parents=True)
             path.write_text(content)
 
         def read(self, filename):
-            path = tmp_path / filename
+            path = pytester.path / filename
             return path.read_text()
 
-        def __getattr__(self, name):
-            return getattr(tmpdir, name)
-
-    print(f"work in {tmp_path}")
+    print(f"work in {pytester.path}")
     return Env()
 
 
 def test_help(env):
-    assert env.run_codecrumbs("--help", capture_output=True).stdout.startswith(
-        b"usage: codecrumbs"
+    env.run_codecrumbs("--help").stdout.fnmatch_lines(["usage: codecrumbs*"])
+
+
+def test_python_module_help(env):
+    env.run("python", "-m", "codecrumbs", "--help").stdout.fnmatch_lines(
+        ["usage: codecrumbs*"]
     )
 
 
@@ -62,22 +47,17 @@ def compare(env):
         env.run("git", "add", "script.py")
 
         def result_equal(result_a, result_b):
-            assert result_a.stdout.decode() == result_b.stdout.decode()
+            assert result_a.stdout.str() == result_b.stdout.str()
             # assert result_a.stderr.decode() == result_b.stderr.decode()
-            assert result_a.returncode == result_b.returncode
+            assert result_a.ret == result_b.ret
 
-        original_result = env.run(
-            sys.executable, "script.py", *args, capture_output=True
-        )
+        original_result = env.run(sys.executable, "script.py", *args)
 
-        codecrumbs_result = env.run_codecrumbs(
-            "run", "script.py", *args, capture_output=True
-        )
+        codecrumbs_result = env.run_codecrumbs("run", "script.py", *args)
 
         result_equal(codecrumbs_result, original_result)
 
-        with env.in_cwd():
-            patch.fromfile("script_codecrumbs.patch").apply()
+        patch.fromfile("script_codecrumbs.patch").apply()
 
         patched_script = env.read("script.py")
 
@@ -86,7 +66,7 @@ def compare(env):
         env.run("git", "add", "script.py")
 
         codecrumbs_fix_result = env.run_codecrumbs(
-            "run", "--fix", "--", "script.py", *args, capture_output=True
+            "run", "--fix", "--", "script.py", *args
         )
         result_equal(codecrumbs_fix_result, original_result)
 
@@ -95,7 +75,7 @@ def compare(env):
         assert patched_script == env.read("script.py") != script_content
 
         # run again and compare output
-        second_result = env.run(sys.executable, "script.py", *args, capture_output=True)
+        second_result = env.run(sys.executable, "script.py", *args)
 
         result_equal(second_result, original_result)
 
@@ -119,7 +99,24 @@ func(old="hello")
     )
 
 
-@pytest.mark.skip("we are not perfect")
+def test_run_exception(compare):
+    compare(
+        """
+import codecrumbs
+
+@codecrumbs.argument_renamed("old","new")
+def func(new):
+    print(new)
+
+func(old="hello")
+
+raise ValueError
+
+"""
+    )
+
+
+@pytest.mark.xfail(reason="we are not perfect")
 def test_run_script(compare):
 
     script = '''

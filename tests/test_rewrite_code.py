@@ -5,8 +5,8 @@ from contextlib import redirect_stdout
 
 import pytest
 from codecrumbs._calling_expression import calling_expression
+from codecrumbs._rewrite_code import ChangeRecorder
 from codecrumbs._rewrite_code import replace
-from codecrumbs._rewrite_code import rewrite
 
 
 @pytest.fixture
@@ -27,13 +27,14 @@ def rewrite_test(tmp_path):
             d = dict(frame.f_globals)
             l = dict(frame.f_locals)
 
-            first_output = io.StringIO()
-            with redirect_stdout(first_output):
-                code = compile(filename.read_bytes(), str(filename), "exec")
-                d["__file__"] = str(filename)
-                exec(code, d, l)
+            with ChangeRecorder().activate() as changes:
+                first_output = io.StringIO()
+                with redirect_stdout(first_output):
+                    code = compile(filename.read_bytes(), str(filename), "exec")
+                    d["__file__"] = str(filename)
+                    exec(code, d, l)
 
-            rewrite(filename)
+            changes.fix_all(check_git=False)
 
             assert (
                 filename.read_bytes() == new_code.encode()
