@@ -71,7 +71,6 @@ def attribute_renamed(new_name, *, since=None):
     ```pycon
     >>> class Test:
     ...     old_method = attribute_renamed("new_method")
-    ...
     ...     def new_method(self):
     ...         return 5
     ...
