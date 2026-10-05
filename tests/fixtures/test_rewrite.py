@@ -80,6 +80,7 @@ def func():
 doctest.testfile(__file__,module_relative=False,globs=locals())
 '''
 
+
 # a complicated way to say that doctest are not supported for python 3.11
 @pytest.fixture(
     params=[
