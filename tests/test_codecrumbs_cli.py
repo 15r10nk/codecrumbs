@@ -85,8 +85,7 @@ def compare(env):
 
 
 def test_run_hello_world(compare):
-    compare(
-        """
+    compare("""
 import codecrumbs
 
 @codecrumbs.argument_renamed("old","new")
@@ -95,13 +94,11 @@ def func(new):
 
 func(old="hello")
 
-"""
-    )
+""")
 
 
 def test_run_exception(compare):
-    compare(
-        """
+    compare("""
 import codecrumbs
 
 @codecrumbs.argument_renamed("old","new")
@@ -112,8 +109,7 @@ func(old="hello")
 
 raise ValueError
 
-"""
-    )
+""")
 
 
 @pytest.mark.xfail(reason="we are not perfect")
